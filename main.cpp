@@ -1,5 +1,6 @@
 #include <iostream>
 #include <qpdf/QPDF.hh>
+#include <QtCore/QString>
 #include "imageProvider.h"
 
 using namespace std;
@@ -26,24 +27,25 @@ int main(int argc, char *argv[])
     
     QPDFObjectHandle xobject = resources.getKey("/XObject");
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&pdf);
-    image.replaceDict(QPDFObjectHandle::parse(
-                          "<<"
+    ImageProvider* p = new ImageProvider("protocol-image.png");
+    QString imgstr = QString("<<"
                           " /Type /XObject"
                           " /Subtype /Image"
                           " /ColorSpace /DeviceRGB"
                           " /BitsPerComponent 8"
-                          " /Width 100"
-                          " /Height 100"
-                          ">>"));
+                          " /Width ") + QString::number(p->getWidth()) +
+                          " /Height " + QString::number(p->getHeight()) +
+                          ">>";
+    cout << imgstr.toLocal8Bit().constData() << endl;
+    image.replaceDict(QPDFObjectHandle::parse(imgstr.toLocal8Bit().constData()));
     // Provide the stream data.
-    ImageProvider* p = new ImageProvider(100, 100);
     PointerHolder<QPDFObjectHandle::StreamDataProvider> provider(p);
     image.replaceStreamData(provider,
                             QPDFObjectHandle::newNull(),
                             QPDFObjectHandle::newNull());
     xobject.replaceKey("/ImEPStamp55", image);
     
-    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q 1 0 0 1 50 289 cm /ImEPStamp55 Do Q\n"), true);
+    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q 100 0 0 100 50 289 cm /ImEPStamp55 Do Q\n"), true);
     //QPDFObjectHandle contents = firstPage.getKey("/Contents");
     //unsigned const char *stream = contents.getStreamData().getPointer()->getBuffer();
     
