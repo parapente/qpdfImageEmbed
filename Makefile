@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g
-SRC = main.cc
+SRC = main.cpp imageProvider.cpp
 LIBS = -lqpdf -lstdc++
 
 all: $(SRC)
