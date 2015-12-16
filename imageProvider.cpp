@@ -9,9 +9,11 @@ ImageProvider::ImageProvider(int width, int height) :
 ImageProvider::ImageProvider(const char *filename) :
     filename(filename)
 {
-    img = new QImage(filename);
-    width = img->width();
-    height = img->height();
+    img = QImage(filename); //.convertToFormat(QImage::Format_RGB888);
+    //img = QImage(filename).convertToFormat(QImage::Format_RGB888);
+    std::cout << "Format: " << img.format() << std::endl;
+    width = img.width();
+    height = img.height();
     
     std::cout << "Image width: " << width << std::endl;
     std::cout << "Image height: " << height << std::endl;
@@ -32,7 +34,16 @@ ImageProvider::provideStreamData(int objid, int generation,
         }
     }
     else {
-        pipeline->write(img->bits(),width*height*3);
+        QRgb *p;
+        unsigned char pixel[3];
+        for (int i = 0; i < width*height; i++)
+        {
+            p = (QRgb *) (img.bits()+i*4);
+            pixel[0] = qRed(*p);
+            pixel[1] = qGreen(*p);
+            pixel[2] = qBlue(*p);
+            pipeline->write(pixel,3);
+        }
     }
     pipeline->finish();
 }

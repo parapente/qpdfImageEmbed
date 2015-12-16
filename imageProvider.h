@@ -18,6 +18,6 @@ class ImageProvider: public QPDFObjectHandle::StreamDataProvider
     int width;
     int height;
     const char *filename;
-    QImage *img;
+    QImage img;
 };
 

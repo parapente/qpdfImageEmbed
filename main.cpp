@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     
     QPDFObjectHandle xobject = resources.getKey("/XObject");
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&pdf);
-    ImageProvider* p = new ImageProvider("protocol-image.png");
+    ImageProvider* p = new ImageProvider("protocol-imageb.png");
     QString imgstr = QString("<<"
                           " /Type /XObject"
                           " /Subtype /Image"
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
                             QPDFObjectHandle::newNull());
     xobject.replaceKey("/ImEPStamp55", image);
     
-    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q 100 0 0 100 50 289 cm /ImEPStamp55 Do Q\n"), true);
+    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q 286 0 0 99 100 50 cm /ImEPStamp55 Do Q\n"), false);
     //QPDFObjectHandle contents = firstPage.getKey("/Contents");
     //unsigned const char *stream = contents.getStreamData().getPointer()->getBuffer();
     
