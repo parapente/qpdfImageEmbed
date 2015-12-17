@@ -20,6 +20,27 @@ int main(int argc, char *argv[])
     QPDFObjectHandle firstPage = pages.at(0);
     
     cout << "Has Contents:" << firstPage.hasKey("/Contents") << endl;
+    cout << "Has MediaBox:" << firstPage.hasKey("/MediaBox") << endl;
+    QPDFObjectHandle mediabox = firstPage.getKey("/MediaBox");
+    cout << "--> MediaBox : ";
+    for (int i=0; i<mediabox.getArrayNItems(); i++) {
+        cout << mediabox.getArrayItem(i).getNumericValue() << " ";
+    }
+    cout << endl;
+    cout << "Has CropBox:" << firstPage.hasKey("/CropBox") << endl;
+    if (firstPage.hasKey("/CrobBox")) {
+        QPDFObjectHandle cropbox = firstPage.getKey("/CropBox");
+        cout << "--> CropBox : ";
+        for (int i=0; i<cropbox.getArrayNItems(); i++) {
+            cout << cropbox.getArrayItem(i).getNumericValue() << " ";
+        }
+        cout << endl;
+    }
+    cout << "Has Rotate:" << firstPage.hasKey("/Rotate") << endl;
+    if (firstPage.hasKey("/Rotate")) {
+        QPDFObjectHandle rotate = firstPage.getKey("/Rotate");
+        cout << "--> Rotate :" << rotate.getNumericValue();
+    }
     cout << "Has Resouces:" << firstPage.hasKey("/Resources") << endl;
     
     QPDFObjectHandle resources = firstPage.getKey("/Resources");
