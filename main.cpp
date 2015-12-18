@@ -66,7 +66,8 @@ int main(int argc, char *argv[])
                             QPDFObjectHandle::newNull());
     xobject.replaceKey("/ImEPStamp55", image);
     
-    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q 286 0 0 99 100 50 cm /ImEPStamp55 Do Q\n"), false);
+    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q\n"), true);
+    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "Q q 286 0 0 99 100 50 cm /ImEPStamp55 Do Q\n"), false);
     //QPDFObjectHandle contents = firstPage.getKey("/Contents");
     //unsigned const char *stream = contents.getStreamData().getPointer()->getBuffer();
     
