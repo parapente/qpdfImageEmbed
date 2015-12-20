@@ -1,16 +1,54 @@
 #include <iostream>
 #include <qpdf/QPDF.hh>
 #include <QtCore/QString>
+#include <boost/program_options.hpp>
+#include <boost/program_options/options_description.hpp>
 #include "imageProvider.h"
 
 using namespace std;
+using namespace boost::program_options;
 
 int main(int argc, char *argv[])
 {
-    cout << "Hello world!" << endl;
     QPDF pdf;
+    string inpdf, outpdf, imgfile;
 
-    pdf.processFile(argv[1]);
+    // parse options using boost::program_options
+    options_description desc("Allowed options:");
+    desc.add_options()
+        ("help,h", "Produce this help message")
+        ("input-file,i", value<string>(),"Input file")
+        ("output-file,o", value<string>(), "Output file")
+        ("stamp,s", value<string>(), "Image to embed")
+    ;
+    
+    positional_options_description posdes;
+    posdes.add("input-file", 1);
+    posdes.add("stamp", 1);
+    posdes.add("output-file", 1);
+    
+    variables_map vm;
+    store(command_line_parser(argc, argv).options(desc).positional(posdes).run(), vm);
+    notify(vm);
+    
+    if ((argc !=4) || vm.empty() || vm.count("help")) {
+        cout << desc << endl;
+        return 1;
+    }
+    
+    if (vm.count("input-file")) {
+        inpdf = vm["input-file"].as<string>();
+    }
+
+    if (vm.count("output-file")) {
+        outpdf = vm["output-file"].as<string>();
+    }
+
+    if (vm.count("stamp")) {
+        imgfile = vm["stamp"].as<string>();
+    }
+
+    pdf.processFile(inpdf.c_str());
     cout << pdf.getPDFVersion() << endl;
 
     vector<QPDFObjectHandle> pages;
@@ -48,7 +86,7 @@ int main(int argc, char *argv[])
     
     QPDFObjectHandle xobject = resources.getKey("/XObject");
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&pdf);
-    ImageProvider* p = new ImageProvider("protocol-imageb.png");
+    ImageProvider* p = new ImageProvider(imgfile.c_str());
     QString imgstr = QString("<<"
                           " /Type /XObject"
                           " /Subtype /Image"
@@ -66,6 +104,9 @@ int main(int argc, char *argv[])
                             QPDFObjectHandle::newNull());
     xobject.replaceKey("/ImEPStamp55", image);
     
+    // To prevent our image appearing in unexpected places we save the initial state at the beginning of the page
+    // and restore it at the end before adding our image.
+    // Thanks go to David van Driessche @StackOverflow for this elegant solution
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q\n"), true);
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "Q q 286 0 0 99 100 50 cm /ImEPStamp55 Do Q\n"), false);
     //QPDFObjectHandle contents = firstPage.getKey("/Contents");
@@ -73,7 +114,7 @@ int main(int argc, char *argv[])
     
     //cout << stream << endl;
     
-    QPDFWriter w(pdf, "a.pdf");
+    QPDFWriter w(pdf, outpdf.c_str());
     w.write();
 
     return 0;
