@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
 {
     QPDF pdf;
     string inpdf, outpdf, imgfile;
+    int side=0, rotate=0;
 
     // parse options using boost::program_options
     options_description desc("Allowed options:");
@@ -20,18 +21,20 @@ int main(int argc, char *argv[])
         ("input-file,i", value<string>(),"Input file")
         ("output-file,o", value<string>(), "Output file")
         ("stamp,s", value<string>(), "Image to embed")
+        ("side", value<int>(), "Side of the document: 0 center (default), 1 left, 2 right")
     ;
     
     positional_options_description posdes;
     posdes.add("input-file", 1);
     posdes.add("stamp", 1);
     posdes.add("output-file", 1);
+    posdes.add("side", 1);
     
     variables_map vm;
     store(command_line_parser(argc, argv).options(desc).positional(posdes).run(), vm);
     notify(vm);
     
-    if ((argc !=4) || vm.empty() || vm.count("help")) {
+    if ((argc <4) || vm.empty() || vm.count("help")) {
         cout << desc << endl;
         return 1;
     }
@@ -48,6 +51,11 @@ int main(int argc, char *argv[])
         imgfile = vm["stamp"].as<string>();
     }
 
+    if (vm.count("side")) {
+        side = vm["side"].as<int>();
+    }
+
+    cout << side <<endl;
     pdf.processFile(inpdf.c_str());
     cout << pdf.getPDFVersion() << endl;
 
@@ -108,11 +116,20 @@ int main(int argc, char *argv[])
     // and restore it at the end before adding our image.
     // Thanks go to David van Driessche @StackOverflow for this elegant solution
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q\n"), true);
-    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "Q q 286 0 0 99 100 50 cm /ImEPStamp55 Do Q\n"), false);
-    //QPDFObjectHandle contents = firstPage.getKey("/Contents");
-    //unsigned const char *stream = contents.getStreamData().getPointer()->getBuffer();
-    
-    //cout << stream << endl;
+    QString streamstr;
+    int topMargin = 20;
+    int sideMargin = 20;
+    streamstr = QString("Q q ") + QString::number(p->getWidth()) + " 0 0 " + QString::number(p->getHeight()) + " ";
+    if (side == 0 )
+        streamstr += QString::number((mediabox.getArrayItem(2).getNumericValue() - p->getWidth())/2) + " ";
+    else if (side == 1)
+        streamstr += QString::number(sideMargin) + " ";
+    else
+        streamstr += QString::number(mediabox.getArrayItem(2).getNumericValue() - p->getWidth() - sideMargin) + " ";
+    streamstr += QString::number(mediabox.getArrayItem(3).getNumericValue() - p->getHeight() - topMargin);
+    streamstr += " cm /ImEPStamp55 Do Q\n";
+    cout << "Stream str: " << streamstr.toStdString() << endl;
+    firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, streamstr.toStdString()), false);
     
     QPDFWriter w(pdf, outpdf.c_str());
     w.write();
