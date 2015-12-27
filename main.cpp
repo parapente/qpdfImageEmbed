@@ -67,7 +67,16 @@ int main(int argc, char *argv[])
     
     cout << "Has Contents:" << firstPage.hasKey("/Contents") << endl;
     cout << "Has MediaBox:" << firstPage.hasKey("/MediaBox") << endl;
-    QPDFObjectHandle mediabox = firstPage.getKey("/MediaBox");
+    QPDFObjectHandle mediabox;
+    if (!firstPage.hasKey("/MediaBox")) {
+        mediabox = QPDFObjectHandle::newArray();
+        mediabox.appendItem(QPDFObjectHandle::newInteger(0));
+        mediabox.appendItem(QPDFObjectHandle::newInteger(0));
+        mediabox.appendItem(QPDFObjectHandle::newInteger(612));
+        mediabox.appendItem(QPDFObjectHandle::newInteger(792));
+    }
+    else
+        mediabox = firstPage.getKey("/MediaBox");
     cout << "--> MediaBox : ";
     for (int i=0; i<mediabox.getArrayNItems(); i++) {
         cout << mediabox.getArrayItem(i).getNumericValue() << " ";
@@ -85,14 +94,20 @@ int main(int argc, char *argv[])
     cout << "Has Rotate:" << firstPage.hasKey("/Rotate") << endl;
     if (firstPage.hasKey("/Rotate")) {
         QPDFObjectHandle rotate = firstPage.getKey("/Rotate");
-        cout << "--> Rotate :" << rotate.getNumericValue();
+        cout << "--> Rotate :" << rotate.getNumericValue() << endl;
     }
     cout << "Has Resouces:" << firstPage.hasKey("/Resources") << endl;
     
     QPDFObjectHandle resources = firstPage.getKey("/Resources");
     cout << "Has Resouces->XObject:" << resources.hasKey("/XObject") << endl;
     
-    QPDFObjectHandle xobject = resources.getKey("/XObject");
+    QPDFObjectHandle xobject;
+    if (!resources.hasKey("/XObject")) {
+        xobject = QPDFObjectHandle::newDictionary();
+        resources.replaceKey("/XObject", xobject);
+    }
+    else 
+        xobject = resources.getKey("/XObject");
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&pdf);
     ImageProvider* p = new ImageProvider(imgfile.c_str());
     QString imgstr = QString("<<"
@@ -121,12 +136,12 @@ int main(int argc, char *argv[])
     int sideMargin = 20;
     streamstr = QString("Q q ") + QString::number(p->getWidth()) + " 0 0 " + QString::number(p->getHeight()) + " ";
     if (side == 0 )
-        streamstr += QString::number((mediabox.getArrayItem(2).getNumericValue() - p->getWidth())/2) + " ";
+        streamstr += QString::number((mediabox.getArrayItem(2).getNumericValue() - mediabox.getArrayItem(0).getNumericValue() - p->getWidth())/2) + " ";
     else if (side == 1)
-        streamstr += QString::number(sideMargin) + " ";
+        streamstr += QString::number(mediabox.getArrayItem(0).getNumericValue() + sideMargin) + " ";
     else
-        streamstr += QString::number(mediabox.getArrayItem(2).getNumericValue() - p->getWidth() - sideMargin) + " ";
-    streamstr += QString::number(mediabox.getArrayItem(3).getNumericValue() - p->getHeight() - topMargin);
+        streamstr += QString::number(mediabox.getArrayItem(2).getNumericValue() - mediabox.getArrayItem(0).getNumericValue() - p->getWidth() - sideMargin) + " ";
+    streamstr += QString::number(mediabox.getArrayItem(3).getNumericValue() - mediabox.getArrayItem(1).getNumericValue() - p->getHeight() - topMargin);
     streamstr += " cm /ImEPStamp55 Do Q\n";
     cout << "Stream str: " << streamstr.toStdString() << endl;
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, streamstr.toStdString()), false);
