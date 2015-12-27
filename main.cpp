@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include <qpdf/QPDF.hh>
 #include <QtCore/QString>
 #include <boost/program_options.hpp>
@@ -93,8 +94,10 @@ int main(int argc, char *argv[])
     }
     cout << "Has Rotate:" << firstPage.hasKey("/Rotate") << endl;
     if (firstPage.hasKey("/Rotate")) {
-        QPDFObjectHandle rotate = firstPage.getKey("/Rotate");
-        cout << "--> Rotate :" << rotate.getNumericValue() << endl;
+        QPDFObjectHandle rotateObj = firstPage.getKey("/Rotate");
+        rotate = rotateObj.getNumericValue();
+        cout << "--> Rotate :" << rotate << endl;
+        
     }
     cout << "Has Resouces:" << firstPage.hasKey("/Resources") << endl;
     
@@ -134,14 +137,58 @@ int main(int argc, char *argv[])
     QString streamstr;
     int topMargin = 20;
     int sideMargin = 20;
-    streamstr = QString("Q q ") + QString::number(p->getWidth()) + " 0 0 " + QString::number(p->getHeight()) + " ";
-    if (side == 0 )
-        streamstr += QString::number((mediabox.getArrayItem(2).getNumericValue() - mediabox.getArrayItem(0).getNumericValue() - p->getWidth())/2) + " ";
-    else if (side == 1)
-        streamstr += QString::number(mediabox.getArrayItem(0).getNumericValue() + sideMargin) + " ";
-    else
-        streamstr += QString::number(mediabox.getArrayItem(2).getNumericValue() - mediabox.getArrayItem(0).getNumericValue() - p->getWidth() - sideMargin) + " ";
-    streamstr += QString::number(mediabox.getArrayItem(3).getNumericValue() - mediabox.getArrayItem(1).getNumericValue() - p->getHeight() - topMargin);
+    int imgHeight, imgWidth;
+    float pageHeight, pageWidth;
+    pageHeight = mediabox.getArrayItem(3).getNumericValue() - mediabox.getArrayItem(1).getNumericValue();
+    pageWidth = mediabox.getArrayItem(2).getNumericValue() - mediabox.getArrayItem(0).getNumericValue();
+    imgHeight = p->getHeight();
+    imgWidth = p->getWidth();
+    streamstr = QString("Q q ");
+    // If the page is rotated
+    if (rotate != 0) {
+        double cq, sq;
+        int tx, ty;
+        cq = cos((double)rotate * M_PI / 180);
+        sq = sin((double)rotate * M_PI / 180);
+        if (rotate == 90) {
+            tx = 0;
+            ty = -pageWidth;
+        }
+        else if (rotate == 180) {
+            tx = -pageWidth;
+            ty = -pageHeight;
+        }
+        else {
+            tx = -pageHeight;
+            ty = -pageWidth;
+        }
+        streamstr += QString::number(cq, 'f', 3) + " " + QString::number(sq, 'f', 3) + " -" + QString::number(sq, 'f', 3) + " " + QString::number(cq, 'f', 3) + " 0 0 cm ";
+        streamstr += QString("1 0 0 1 ") + QString::number(tx) + " " + QString::number(ty) + " cm ";
+    }
+
+    // Set the apropriate image scaling according to page rotation
+    streamstr += QString::number(imgWidth) + " 0 0 " + QString::number(imgHeight) + " ";
+
+    int imgtx, imgty;
+    if (rotate == 90 || rotate == 270) {
+        if (side == 0 )
+            imgtx = (pageHeight - imgWidth)/2;
+        else if (side == 1)
+            imgtx = mediabox.getArrayItem(1).getNumericValue() + sideMargin;
+        else
+            imgtx = pageHeight - imgWidth - sideMargin;
+        imgty = pageWidth - imgHeight - topMargin;
+    }
+    else {
+        if (side == 0 )
+            imgtx = (pageWidth - imgWidth)/2;
+        else if (side == 1)
+            imgtx = mediabox.getArrayItem(0).getNumericValue() + sideMargin;
+        else
+            imgtx = pageWidth - imgWidth - sideMargin;
+        imgty = pageHeight - imgHeight - topMargin;
+    }
+    streamstr += QString::number(imgtx) + " " + QString::number(imgty);
     streamstr += " cm /ImEPStamp55 Do Q\n";
     cout << "Stream str: " << streamstr.toStdString() << endl;
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, streamstr.toStdString()), false);

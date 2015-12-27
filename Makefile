@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g
 SRC = main.cpp imageProvider.cpp
-LIBS = -L/usr/lib/qt4 -lqpdf -lstdc++ -lQtGui -lQtCore -lboost_program_options
+LIBS = -L/usr/lib/qt4 -lqpdf -lstdc++ -lQtGui -lQtCore -lboost_program_options -lm
 INC = -I/usr/include/qt4
 
 all: $(SRC)
