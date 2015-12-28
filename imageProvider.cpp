@@ -17,6 +17,14 @@ ImageProvider::ImageProvider(const char *filename) :
     
     std::cout << "Image width: " << width << std::endl;
     std::cout << "Image height: " << height << std::endl;
+
+    alphaData = new unsigned char[width*height];
+    for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++) {
+            alphaData[y*width+x] = (unsigned char) qAlpha(img.pixel(x,y));
+            //std::cout << (int) alphaData[i];
+        }
+    alphaBuf = new Buffer(alphaData, width*height);
 }
 
 ImageProvider::~ImageProvider()
@@ -36,16 +44,18 @@ ImageProvider::provideStreamData(int objid, int generation,
     else {
         QRgb *p;
         unsigned char pixel[3];
-        for (int i = 0; i < width*height; i++)
-        {
-            p = (QRgb *) (img.bits()+i*4);
-            pixel[0] = qRed(*p);
-            pixel[1] = qGreen(*p);
-            pixel[2] = qBlue(*p);
-            pipeline->write(pixel,3);
-        }
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                {
+                    pixel[0] = (unsigned char) qRed(img.pixel(x,y));
+                    pixel[1] = (unsigned char) qGreen(img.pixel(x,y));
+                    pixel[2] = (unsigned char) qBlue(img.pixel(x,y));
+                    //std::cout << (int) pixel[0] << "," << (int) pixel[1] << "," << (int) pixel[2] << " - ";
+                    pipeline->write(pixel,3);
+            }
     }
     pipeline->finish();
+    
 }
 
 int ImageProvider::getHeight()
@@ -56,4 +66,9 @@ int ImageProvider::getHeight()
 int ImageProvider::getWidth()
 {
     return width;
+}
+
+Buffer *ImageProvider::getAlpha()
+{
+    return alphaBuf;
 }

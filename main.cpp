@@ -111,6 +111,8 @@ int main(int argc, char *argv[])
     }
     else 
         xobject = resources.getKey("/XObject");
+    
+    // Image object
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&pdf);
     ImageProvider* p = new ImageProvider(imgfile.c_str());
     QString imgstr = QString("<<"
@@ -129,6 +131,32 @@ int main(int argc, char *argv[])
                             QPDFObjectHandle::newNull(),
                             QPDFObjectHandle::newNull());
     xobject.replaceKey("/ImEPStamp55", image);
+    
+    // Transparency object
+    QPDFObjectHandle transparency = QPDFObjectHandle::newStream(&pdf);
+    QString trimgstr = QString("<<"
+                          " /Type /XObject"
+                          " /Subtype /Image"
+                          " /ColorSpace /DeviceGray"
+                          " /BitsPerComponent 8"
+                          " /Decode [0.0 1.0]"
+                          " /Width ") + QString::number(p->getWidth()) +
+                          " /Height " + QString::number(p->getHeight()) +
+                          ">>";
+    cout << trimgstr.toLocal8Bit().constData() << endl;
+    transparency.replaceDict(QPDFObjectHandle::parse(trimgstr.toLocal8Bit().constData()));
+    // Provide the stream data.
+    PointerHolder<Buffer> trprovider(p->getAlpha());
+    cout << "Buffer size: " << trprovider.getPointer()->getSize() << endl;
+    transparency.replaceStreamData(trprovider,
+                            QPDFObjectHandle::newNull(),
+                            QPDFObjectHandle::newNull());
+    xobject.replaceKey("/ImEPStamp55tr", transparency);
+    QString smaskstr = QString(QString::number(transparency.getObjectID()) + " " + QString::number(transparency.getGeneration()) + " R");
+    pdf.updateAllPagesCache();
+    cout << "/SMask " << smaskstr.toStdString() << endl;
+    cout << "/SMask " << transparency.getObjGen().getObj() << endl;
+    image.getDict().replaceKey("/SMask", QPDFObjectHandle::newOperator(smaskstr.toStdString()));
     
     // To prevent our image appearing in unexpected places we save the initial state at the beginning of the page
     // and restore it at the end before adding our image.
@@ -192,9 +220,12 @@ int main(int argc, char *argv[])
     streamstr += " cm /ImEPStamp55 Do Q\n";
     cout << "Stream str: " << streamstr.toStdString() << endl;
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, streamstr.toStdString()), false);
+
+    cout << "/SMask " << transparency.getObjGen().getObj() << endl;
     
     QPDFWriter w(pdf, outpdf.c_str());
     w.write();
+    cout << "/SMask " << transparency.getObjGen().getObj() << endl;
 
     return 0;
 }
