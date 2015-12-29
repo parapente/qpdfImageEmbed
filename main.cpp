@@ -154,9 +154,7 @@ int main(int argc, char *argv[])
     xobject.replaceKey("/ImEPStamp55tr", transparency);
     QString smaskstr = QString(QString::number(transparency.getObjectID()) + " " + QString::number(transparency.getGeneration()) + " R");
     pdf.updateAllPagesCache();
-    cout << "/SMask " << smaskstr.toStdString() << endl;
-    cout << "/SMask " << transparency.getObjGen().getObj() << endl;
-    image.getDict().replaceKey("/SMask", QPDFObjectHandle::newOperator(smaskstr.toStdString()));
+    image.getDict().replaceKey("/SMask", transparency);
     
     // To prevent our image appearing in unexpected places we save the initial state at the beginning of the page
     // and restore it at the end before adding our image.
@@ -221,11 +219,8 @@ int main(int argc, char *argv[])
     cout << "Stream str: " << streamstr.toStdString() << endl;
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, streamstr.toStdString()), false);
 
-    cout << "/SMask " << transparency.getObjGen().getObj() << endl;
-    
     QPDFWriter w(pdf, outpdf.c_str());
     w.write();
-    cout << "/SMask " << transparency.getObjGen().getObj() << endl;
 
     return 0;
 }
