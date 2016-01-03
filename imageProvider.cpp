@@ -1,4 +1,5 @@
 #include "imageProvider.h"
+#include <QtCore/QDebug>
 
 ImageProvider::ImageProvider(int width, int height) :
     width(width),
@@ -11,18 +12,17 @@ ImageProvider::ImageProvider(const char *filename) :
 {
     img = QImage(filename); //.convertToFormat(QImage::Format_RGB888);
     //img = QImage(filename).convertToFormat(QImage::Format_RGB888);
-    std::cout << "Format: " << img.format() << std::endl;
+    qDebug() << "Format: " << img.format();
     width = img.width();
     height = img.height();
     
-    std::cout << "Image width: " << width << std::endl;
-    std::cout << "Image height: " << height << std::endl;
+    qDebug() << "Image width: " << width;
+    qDebug() << "Image height: " << height;
 
     alphaData = new unsigned char[width*height];
     for (int y = 0; y < height; y++)
         for (int x = 0; x < width; x++) {
             alphaData[y*width+x] = (unsigned char) qAlpha(img.pixel(x,y));
-            //std::cout << (int) alphaData[i];
         }
     alphaBuf = new Buffer(alphaData, width*height);
 }

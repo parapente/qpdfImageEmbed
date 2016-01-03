@@ -2,6 +2,7 @@
 #include <cmath>
 #include <qpdf/QPDF.hh>
 #include <QtCore/QString>
+#include <QtCore/QDebug>
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include "imageProvider.h"
@@ -14,6 +15,7 @@ int main(int argc, char *argv[])
     QPDF pdf;
     string inpdf, outpdf, imgfile;
     int side=0, rotate=0;
+    QRectF pageRect;
 
     // parse options using boost::program_options
     options_description desc("Allowed options:");
@@ -56,53 +58,57 @@ int main(int argc, char *argv[])
         side = vm["side"].as<int>();
     }
 
-    cout << side <<endl;
+    qDebug() << side;
     pdf.processFile(inpdf.c_str());
-    cout << pdf.getPDFVersion() << endl;
+    qDebug() << QString::fromStdString(pdf.getPDFVersion());
 
     vector<QPDFObjectHandle> pages;
     pages = pdf.getAllPages();
-    cout << "Pages:" << pages.size() << endl;
+    qDebug() << "Pages:" << pages.size();
     
     QPDFObjectHandle firstPage = pages.at(0);
     
-    cout << "Has Contents:" << firstPage.hasKey("/Contents") << endl;
-    cout << "Has MediaBox:" << firstPage.hasKey("/MediaBox") << endl;
+    qDebug() << "Has Contents:" << firstPage.hasKey("/Contents");
+    qDebug() << "Has MediaBox:" << firstPage.hasKey("/MediaBox");
     QPDFObjectHandle mediabox;
-    if (!firstPage.hasKey("/MediaBox")) {
+    if (!firstPage.hasKey("/MediaBox")) { // No MediaBox? Use default values for letter size
         mediabox = QPDFObjectHandle::newArray();
         mediabox.appendItem(QPDFObjectHandle::newInteger(0));
         mediabox.appendItem(QPDFObjectHandle::newInteger(0));
         mediabox.appendItem(QPDFObjectHandle::newInteger(612));
         mediabox.appendItem(QPDFObjectHandle::newInteger(792));
+        pageRect.setCoords(0, 0, 612, 792);
     }
-    else
+    else {
         mediabox = firstPage.getKey("/MediaBox");
-    cout << "--> MediaBox : ";
+        pageRect.setCoords(mediabox.getArrayItem(0).getNumericValue(), mediabox.getArrayItem(1).getNumericValue(),
+                           mediabox.getArrayItem(2).getNumericValue(), mediabox.getArrayItem(3).getNumericValue());
+    }
+    qDebug() << "--> MediaBox : ";
     for (int i=0; i<mediabox.getArrayNItems(); i++) {
-        cout << mediabox.getArrayItem(i).getNumericValue() << " ";
+        qDebug() << mediabox.getArrayItem(i).getNumericValue() << " ";
     }
-    cout << endl;
-    cout << "Has CropBox:" << firstPage.hasKey("/CropBox") << endl;
-    if (firstPage.hasKey("/CrobBox")) {
+    qDebug() << "Has CropBox:" << firstPage.hasKey("/CropBox");
+    if (firstPage.hasKey("/CropBox")) {
         QPDFObjectHandle cropbox = firstPage.getKey("/CropBox");
-        cout << "--> CropBox : ";
+        qDebug() << "--> CropBox : ";
         for (int i=0; i<cropbox.getArrayNItems(); i++) {
-            cout << cropbox.getArrayItem(i).getNumericValue() << " ";
+            qDebug() << cropbox.getArrayItem(i).getNumericValue() << " ";
         }
-        cout << endl;
+        pageRect.setCoords(cropbox.getArrayItem(0).getNumericValue(), cropbox.getArrayItem(1).getNumericValue(),
+                           cropbox.getArrayItem(2).getNumericValue(), cropbox.getArrayItem(3).getNumericValue());
     }
-    cout << "Has Rotate:" << firstPage.hasKey("/Rotate") << endl;
+    qDebug() << "Has Rotate:" << firstPage.hasKey("/Rotate");
     if (firstPage.hasKey("/Rotate")) {
         QPDFObjectHandle rotateObj = firstPage.getKey("/Rotate");
         rotate = rotateObj.getNumericValue();
-        cout << "--> Rotate :" << rotate << endl;
+        qDebug() << "--> Rotate :" << rotate;
         
     }
-    cout << "Has Resouces:" << firstPage.hasKey("/Resources") << endl;
+    qDebug() << "Has Resouces:" << firstPage.hasKey("/Resources");
     
     QPDFObjectHandle resources = firstPage.getKey("/Resources");
-    cout << "Has Resouces->XObject:" << resources.hasKey("/XObject") << endl;
+    qDebug() << "Has Resouces->XObject:" << resources.hasKey("/XObject");
     
     QPDFObjectHandle xobject;
     if (!resources.hasKey("/XObject")) {
@@ -123,7 +129,7 @@ int main(int argc, char *argv[])
                           " /Width ") + QString::number(p->getWidth()) +
                           " /Height " + QString::number(p->getHeight()) +
                           ">>";
-    cout << imgstr.toLocal8Bit().constData() << endl;
+    qDebug() << imgstr.toLocal8Bit().constData();
     image.replaceDict(QPDFObjectHandle::parse(imgstr.toLocal8Bit().constData()));
     // Provide the stream data.
     PointerHolder<QPDFObjectHandle::StreamDataProvider> provider(p);
@@ -143,11 +149,11 @@ int main(int argc, char *argv[])
                           " /Width ") + QString::number(p->getWidth()) +
                           " /Height " + QString::number(p->getHeight()) +
                           ">>";
-    cout << trimgstr.toLocal8Bit().constData() << endl;
+    qDebug() << trimgstr.toLocal8Bit().constData();
     transparency.replaceDict(QPDFObjectHandle::parse(trimgstr.toLocal8Bit().constData()));
     // Provide the stream data.
     PointerHolder<Buffer> trprovider(p->getAlpha());
-    cout << "Buffer size: " << trprovider.getPointer()->getSize() << endl;
+    qDebug() << "Buffer size: " << trprovider.getPointer()->getSize();
     transparency.replaceStreamData(trprovider,
                             QPDFObjectHandle::newNull(),
                             QPDFObjectHandle::newNull());
@@ -165,8 +171,8 @@ int main(int argc, char *argv[])
     int sideMargin = 20;
     int imgHeight, imgWidth;
     float pageHeight, pageWidth;
-    pageHeight = mediabox.getArrayItem(3).getNumericValue() - mediabox.getArrayItem(1).getNumericValue();
-    pageWidth = mediabox.getArrayItem(2).getNumericValue() - mediabox.getArrayItem(0).getNumericValue();
+    pageHeight = pageRect.height();
+    pageWidth = pageRect.width();
     imgHeight = p->getHeight();
     imgWidth = p->getWidth();
     streamstr = QString("Q q ");
@@ -177,46 +183,49 @@ int main(int argc, char *argv[])
         cq = cos((double)rotate * M_PI / 180);
         sq = sin((double)rotate * M_PI / 180);
         if (rotate == 90) {
-            tx = 0;
-            ty = -pageWidth;
+            tx = pageRect.y();
+            ty = -pageRect.x()-pageWidth;
         }
         else if (rotate == 180) {
-            tx = -pageWidth;
-            ty = -pageHeight;
+            tx = -pageRect.x()-pageWidth;
+            ty = -pageRect.y()-pageHeight;
         }
         else {
-            tx = -pageHeight;
-            ty = -pageWidth;
+            tx = -pageRect.y()-pageHeight;
+            ty = -pageRect.x()-pageWidth;
         }
         streamstr += QString::number(cq, 'f', 3) + " " + QString::number(sq, 'f', 3) + " -" + QString::number(sq, 'f', 3) + " " + QString::number(cq, 'f', 3) + " 0 0 cm ";
         streamstr += QString("1 0 0 1 ") + QString::number(tx) + " " + QString::number(ty) + " cm ";
     }
+    else {
+        streamstr += QString("1 0 0 1 ") + QString::number(pageRect.x()) + " " + QString::number(pageRect.y()) + " cm ";
+    }
 
     // Set the apropriate image scaling according to page rotation
-    streamstr += QString::number(imgWidth) + " 0 0 " + QString::number(imgHeight) + " ";
+    streamstr += QString::number(0.75*imgWidth) + " 0 0 " + QString::number(0.75*imgHeight) + " ";
 
     int imgtx, imgty;
     if (rotate == 90 || rotate == 270) {
         if (side == 0 )
-            imgtx = (pageHeight - imgWidth)/2;
+            imgtx = (pageHeight - 0.75*imgWidth)/2;
         else if (side == 1)
             imgtx = mediabox.getArrayItem(1).getNumericValue() + sideMargin;
         else
-            imgtx = pageHeight - imgWidth - sideMargin;
+            imgtx = pageHeight - 0.75*imgWidth - sideMargin;
         imgty = pageWidth - imgHeight - topMargin;
     }
     else {
         if (side == 0 )
-            imgtx = (pageWidth - imgWidth)/2;
+            imgtx = (pageWidth - 0.75*imgWidth)/2;
         else if (side == 1)
             imgtx = mediabox.getArrayItem(0).getNumericValue() + sideMargin;
         else
-            imgtx = pageWidth - imgWidth - sideMargin;
+            imgtx = pageWidth - 0.75*imgWidth - sideMargin;
         imgty = pageHeight - imgHeight - topMargin;
     }
     streamstr += QString::number(imgtx) + " " + QString::number(imgty);
     streamstr += " cm /ImEPStamp55 Do Q\n";
-    cout << "Stream str: " << streamstr.toStdString() << endl;
+    qDebug() << "Stream str: " << streamstr;
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, streamstr.toStdString()), false);
 
     QPDFWriter w(pdf, outpdf.c_str());
