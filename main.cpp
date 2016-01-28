@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     // Thanks go to David van Driessche @StackOverflow for this elegant solution
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, "q\n"), true);
     QString streamstr;
-    int topMargin = 20;
+    int topMargin = 0;
     int sideMargin = 20;
     int imgHeight, imgWidth;
     float pageHeight, pageWidth;
@@ -216,25 +216,25 @@ int main(int argc, char *argv[])
     }
 
     // Set the apropriate image scaling according to page rotation
-    streamstr += QString::number(0.75*imgWidth) + " 0 0 " + QString::number(0.75*imgHeight) + " ";
+    streamstr += QString::number(0.57*imgWidth) + " 0 0 " + QString::number(0.57*imgHeight) + " ";
 
     int imgtx, imgty;
     if (rotate == 90 || rotate == 270) {
         if (side == 0 )
-            imgtx = (pageHeight - 0.75*imgWidth)/2;
+            imgtx = (pageHeight - 0.57*imgWidth)/2;
         else if (side == 1)
             imgtx = mediabox.getArrayItem(1).getNumericValue() + sideMargin;
         else
-            imgtx = pageHeight - 0.75*imgWidth - sideMargin;
+            imgtx = pageHeight - 0.57*imgWidth - sideMargin;
         imgty = pageWidth - imgHeight - topMargin;
     }
     else {
         if (side == 0 )
-            imgtx = (pageWidth - 0.75*imgWidth)/2;
+            imgtx = (pageWidth - 0.57*imgWidth)/2;
         else if (side == 1)
             imgtx = mediabox.getArrayItem(0).getNumericValue() + sideMargin;
         else
-            imgtx = pageWidth - 0.75*imgWidth - sideMargin;
+            imgtx = pageWidth - 0.57*imgWidth - sideMargin;
         imgty = pageHeight - imgHeight - topMargin;
     }
     streamstr += QString::number(imgtx) + " " + QString::number(imgty);
