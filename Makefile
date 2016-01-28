@@ -10,3 +10,5 @@ all: $(SRC)
 
 clean:
 	rm qpdfImageEmbed
+install:
+	cp qpdfImageEmbed /usr/bin/
