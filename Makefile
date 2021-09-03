@@ -1,9 +1,9 @@
-CC = gcc
-CFLAGS = -O2 -DQT_NO_DEBUG_OUTPUT
-#CFLAGS = -g
+CC = clang++-11
+CFLAGS = -O2 -DQT_NO_DEBUG_OUTPUT -fPIC
+#CFLAGS = -g -fPIC
 SRC = main.cpp imageProvider.cpp
-LIBS = -L/usr/lib/qt4 -lqpdf -lstdc++ -lQtGui -lQtCore -lboost_program_options -lm
-INC = -I/usr/include/qt4
+LIBS = -L/usr/lib/x86_64-linux-gnu -lstdc++ -lqpdf -lQt5Gui -lQt5Core -lQt5X11Extras -lboost_program_options -lm
+INC = -I/usr/include/x86_64-linux-gnu/qt5
 
 all: $(SRC)
 	$(CC) $(CFLAGS) $(INC) $(LIBS) -o qpdfImageEmbed $(SRC)
