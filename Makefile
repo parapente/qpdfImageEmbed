@@ -6,7 +6,7 @@ LIBS = -L/usr/lib/x86_64-linux-gnu -lstdc++ -lqpdf -lQt5Gui -lQt5Core -lboost_pr
 INC = -I/usr/include/x86_64-linux-gnu/qt5
 
 all: $(SRC)
-	$(CC) $(CFLAGS) $(INC) $(LIBS) -o qpdfImageEmbed $(SRC)
+	$(CC) $(CFLAGS) $(INC) -o qpdfImageEmbed $(SRC) $(LIBS)
 
 clean:
 	rm qpdfImageEmbed
