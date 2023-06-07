@@ -1,0 +1,1 @@
+QHash<QString, QVariant> readCLIOptions(int argc, char *argv[]);

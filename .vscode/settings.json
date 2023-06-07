@@ -1,3 +1,10 @@
 {
-  "cSpell.ignoreWords": ["QPDF"]
+  "cSpell.ignoreWords": [
+    "Driessche",
+    "QPDF",
+    "cropbox",
+    "mediabox",
+    "smask",
+    "xobject"
+  ]
 }
