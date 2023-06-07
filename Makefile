@@ -1,5 +1,5 @@
-CC = clang++-11
-CFLAGS = -O2 -DQT_NO_DEBUG_OUTPUT -fPIC
+CC = clang++
+CFLAGS = -O2 -DQT_NO_DEBUG_OUTPUT -fPIC -std=c++17
 #CFLAGS = -g -fPIC
 SRC = main.cpp imageProvider.cpp
 LIBS = -L/usr/lib/x86_64-linux-gnu -lstdc++ -lqpdf -lQt5Gui -lQt5Core -lboost_program_options -lm
