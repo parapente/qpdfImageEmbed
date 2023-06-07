@@ -31,3 +31,4 @@
 *.png
 
 qpdfImageEmbed
+.vscode/*.log
