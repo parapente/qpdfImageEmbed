@@ -18,18 +18,17 @@ int main(int argc, char *argv[]) {
 
     cliOption = readCLIOptions(argc, argv);
 
-    logger << std::get<int>(cliOption["side"]);
     pdf.processFile(std::get<std::string>(cliOption["inputPDF"]).c_str());
-    logger << pdf.getPDFVersion();
+    logger << "PDF version: " << pdf.getPDFVersion() << "\n";
 
     std::vector<QPDFObjectHandle> pages;
     pages = pdf.getAllPages();
-    logger << "Pages:" << pages.size();
+    logger << "Pages: " << pages.size() << "\n";
 
     QPDFObjectHandle firstPage = pages.at(0);
 
-    logger << "Has Contents:" << firstPage.hasKey("/Contents");
-    logger << "Has MediaBox:" << firstPage.hasKey("/MediaBox");
+    logger << "Has Contents: " << firstPage.hasKey("/Contents") << "\n";
+    logger << "Has MediaBox: " << firstPage.hasKey("/MediaBox") << "\n";
     QPDFObjectHandle mediabox;
     if (!firstPage.hasKey(
             "/MediaBox")) { // No MediaBox? Use default values for letter size
@@ -46,14 +45,14 @@ int main(int argc, char *argv[]) {
                            mediabox.getArrayItem(2).getNumericValue(),
                            mediabox.getArrayItem(3).getNumericValue());
     }
-    logger << "--> MediaBox : ";
+    logger << "--> MediaBox: ";
     for (int i = 0; i < mediabox.getArrayNItems(); i++) {
         logger << mediabox.getArrayItem(i).getNumericValue() << " ";
     }
-    logger << "Has CropBox:" << firstPage.hasKey("/CropBox");
+    logger << "\nHas CropBox: " << firstPage.hasKey("/CropBox") << "\n";
     if (firstPage.hasKey("/CropBox")) {
         QPDFObjectHandle cropbox = firstPage.getKey("/CropBox");
-        logger << "--> CropBox : ";
+        logger << "--> CropBox: ";
         for (int i = 0; i < cropbox.getArrayNItems(); i++) {
             logger << cropbox.getArrayItem(i).getNumericValue() << " ";
         }
@@ -62,20 +61,21 @@ int main(int argc, char *argv[]) {
                            cropbox.getArrayItem(2).getNumericValue(),
                            cropbox.getArrayItem(3).getNumericValue());
     }
-    logger << "Has Rotate:" << firstPage.hasKey("/Rotate");
+    logger << "\nHas Rotate: " << firstPage.hasKey("/Rotate") << "\n";
     if (firstPage.hasKey("/Rotate")) {
         QPDFObjectHandle rotateObj = firstPage.getKey("/Rotate");
         rotate = rotateObj.getNumericValue();
-        logger << "--> Rotate :" << rotate;
+        logger << "--> Rotate: " << rotate << "\n";
     }
     // Override rotation
     if (cliOption.contains("rotate")) {
         rotate = std::get<int>(cliOption["rotate"]);
     }
-    logger << "Has Resources:" << firstPage.hasKey("/Resources");
+    logger << "Has Resources: " << firstPage.hasKey("/Resources") << "\n";
 
     QPDFObjectHandle resources = firstPage.getKey("/Resources");
-    logger << "Has Resources->XObject:" << resources.hasKey("/XObject");
+    logger << "Has Resources->XObject: " << resources.hasKey("/XObject")
+           << "\n";
 
     QPDFObjectHandle xobject;
     if (!resources.hasKey("/XObject")) {
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
                                           " /Width ") +
                               std::to_string(p->getWidth()) + " /Height " +
                               std::to_string(p->getHeight()) + ">>";
-    logger << imageString;
+    logger << "Image string: " << imageString << "\n";
     image.replaceDict(QPDFObjectHandle::parse(imageString));
     // Provide the stream data.
     std::shared_ptr<QPDFObjectHandle::StreamDataProvider> provider(p);
@@ -116,11 +116,11 @@ int main(int argc, char *argv[]) {
                                           std::to_string(p->getWidth()) +
                                           " /Height " +
                                           std::to_string(p->getHeight()) + ">>";
-    logger << transparencyImageString;
+    logger << "Transparency image string: " << transparencyImageString << "\n";
     transparency.replaceDict(QPDFObjectHandle::parse(transparencyImageString));
     // Provide the stream data.
     std::shared_ptr<Buffer> transparencyProvider(p->getAlpha());
-    logger << "Buffer size: " << transparencyProvider.get()->getSize();
+    logger << "Buffer size: " << transparencyProvider.get()->getSize() << "\n";
     transparency.replaceStreamData(transparencyProvider,
                                    QPDFObjectHandle::newNull(),
                                    QPDFObjectHandle::newNull());
@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
     }
     streamString += std::to_string(imgtx) + " " + std::to_string(imgty);
     streamString += " cm /ImEPStamp55 Do Q\n";
-    logger << "Stream str: " << streamString;
+    logger << "Stream str: " << streamString << "\n";
     firstPage.addPageContents(QPDFObjectHandle::newStream(&pdf, streamString),
                               false);
 

@@ -10,8 +10,8 @@ ImageProvider::ImageProvider(const char *filename) : filename(filename) {
     width = geometry.width();
     height = geometry.height();
 
-    logger << "Image width: " << width;
-    logger << "Image height: " << height;
+    logger << "Image width: " << width << "\n";
+    logger << "Image height: " << height << "\n";
 
     alphaData = new unsigned char[width * height];
     img.write(0, 0, width, height, "A", MagickCore::StorageType::CharPixel,
