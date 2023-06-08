@@ -4,6 +4,7 @@
 #include <qpdf/QPDF.hh>
 #include <qrencode.h>
 
+#include "config.h"
 #include "imageProvider.h"
 #include "options.h"
 

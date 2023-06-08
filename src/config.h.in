@@ -1,0 +1,5 @@
+// the configured options and settings for Tutorial
+// clang-format off
+#define qpdfImageEmbed_VERSION_MAJOR @qpdfImageEmbed_VERSION_MAJOR@
+#define qpdfImageEmbed_VERSION_MINOR @qpdfImageEmbed_VERSION_MINOR@
+// clang-format on
