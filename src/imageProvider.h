@@ -1,4 +1,4 @@
-#include <QtGui/QImage>
+#include <Magick++/Image.h>
 #include <qpdf/Buffer.hh>
 #include <qpdf/QPDF.hh>
 #include <qpdf/QPDFObjectHandle.hh>
@@ -19,7 +19,8 @@ private:
   int width;
   int height;
   const char *filename;
-  QImage img;
+  Magick::Image img;
   Buffer *alphaBuf;
   unsigned char *alphaData;
+  unsigned char *rgbData;
 };

@@ -1,4 +1,5 @@
 #include <QtCore/QDebug>
+#include <QtCore/QRectF>
 #include <QtCore/QString>
 #include <cmath>
 #include <qpdf/QPDF.hh>
