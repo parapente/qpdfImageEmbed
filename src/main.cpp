@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     logger << imageString;
     image.replaceDict(QPDFObjectHandle::parse(imageString));
     // Provide the stream data.
-    PointerHolder<QPDFObjectHandle::StreamDataProvider> provider(p);
+    std::shared_ptr<QPDFObjectHandle::StreamDataProvider> provider(p);
     image.replaceStreamData(provider, QPDFObjectHandle::newNull(),
                             QPDFObjectHandle::newNull());
     xobject.replaceKey("/ImEPStamp55", image);
@@ -119,8 +119,8 @@ int main(int argc, char *argv[]) {
     logger << transparencyImageString;
     transparency.replaceDict(QPDFObjectHandle::parse(transparencyImageString));
     // Provide the stream data.
-    PointerHolder<Buffer> transparencyProvider(p->getAlpha());
-    logger << "Buffer size: " << transparencyProvider.getPointer()->getSize();
+    std::shared_ptr<Buffer> transparencyProvider(p->getAlpha());
+    logger << "Buffer size: " << transparencyProvider.get()->getSize();
     transparency.replaceStreamData(transparencyProvider,
                                    QPDFObjectHandle::newNull(),
                                    QPDFObjectHandle::newNull());

@@ -4,7 +4,7 @@ find_package(qpdf REQUIRED)
 find_package(boost_program_options REQUIRED)
 find_package(ImageMagick REQUIRED COMPONENTS Magick++)
 
-add_compile_definitions(MAGICKCORE_QUANTUM_DEPTH=16 MAGICKCORE_HDRI_ENABLE=0)
+add_compile_definitions(MAGICKCORE_QUANTUM_DEPTH=16 MAGICKCORE_HDRI_ENABLE=0 POINTERHOLDER_TRANSITION=4)
 
 add_executable(qpdfImageEmbed main.cpp imageProvider.cpp options.cpp rect.cpp logger.cpp)
 
