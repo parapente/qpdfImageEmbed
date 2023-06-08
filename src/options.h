@@ -1,6 +1,11 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
-QHash<QString, QVariant> readCLIOptions(int argc, char *argv[]);
+#include <string>
+#include <unordered_map>
+#include <variant>
 
-#endif OPTIONS_H
+std::unordered_map<std::string, std::variant<std::string, int>>
+readCLIOptions(int argc, char *argv[]);
+
+#endif // OPTIONS_H

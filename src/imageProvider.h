@@ -9,23 +9,24 @@
 #include <qpdf/QUtil.hh>
 
 class ImageProvider : public QPDFObjectHandle::StreamDataProvider {
-public:
-  ImageProvider(int width, int height);
-  ImageProvider(const char *filename);
-  virtual ~ImageProvider();
-  virtual void provideStreamData(int objid, int generation, Pipeline *pipeline);
-  int getWidth();
-  int getHeight();
-  Buffer *getAlpha();
+    public:
+        ImageProvider(int width, int height);
+        ImageProvider(const char *filename);
+        virtual ~ImageProvider();
+        virtual void provideStreamData(int objid, int generation,
+                                       Pipeline *pipeline);
+        int getWidth();
+        int getHeight();
+        Buffer *getAlpha();
 
-private:
-  int width;
-  int height;
-  const char *filename;
-  Magick::Image img;
-  Buffer *alphaBuf;
-  unsigned char *alphaData;
-  unsigned char *rgbData;
+    private:
+        int width;
+        int height;
+        const char *filename;
+        Magick::Image img;
+        Buffer *alphaBuf;
+        unsigned char *alphaData;
+        unsigned char *rgbData;
 };
 
-#endif IMAGEPROVIDER_H
+#endif // IMAGEPROVIDER_H
