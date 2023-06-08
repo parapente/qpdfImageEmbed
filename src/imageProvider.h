@@ -1,3 +1,6 @@
+#ifndef IMAGEPROVIDER_H
+#define IMAGEPROVIDER_H
+
 #include <Magick++/Image.h>
 #include <qpdf/Buffer.hh>
 #include <qpdf/QPDF.hh>
@@ -24,3 +27,5 @@ private:
   unsigned char *alphaData;
   unsigned char *rgbData;
 };
+
+#endif IMAGEPROVIDER_H

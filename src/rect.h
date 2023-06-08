@@ -1,3 +1,6 @@
+#ifndef RECT_H
+#define RECT_H
+
 class Rect {
 private:
   double x1, x2, y1, y2;
@@ -11,3 +14,5 @@ public:
   double x();
   double y();
 };
+
+#endif // RECT_H
