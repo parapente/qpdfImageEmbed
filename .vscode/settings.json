@@ -3,6 +3,7 @@
     "Driessche",
     "IMAGEPROVIDER",
     "Magick",
+    "PDFPROCESSOR",
     "QPDF",
     "cropbox",
     "mediabox",
