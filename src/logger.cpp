@@ -41,6 +41,12 @@ Logger &Logger::operator<<(const std::string text) {
     return *this;
 }
 
+Logger &Logger::operator<<(const char *text) {
+    if (m_enabled)
+        *out << text;
+    return *this;
+}
+
 Logger &Logger::operator<<(const int value) {
     if (m_enabled)
         *out << value;
