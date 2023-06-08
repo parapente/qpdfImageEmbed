@@ -1,6 +1,4 @@
 #include <QtCore/QDebug>
-#include <QtCore/QRectF>
-#include <QtCore/QString>
 #include <cmath>
 #include <qpdf/QPDF.hh>
 #include <qrencode.h>
@@ -8,13 +6,14 @@
 #include "config.h"
 #include "imageProvider.h"
 #include "options.h"
+#include "rect.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
   QPDF pdf;
   int rotate = 0;
-  QRectF pageRect;
+  Rect pageRect;
   QHash<QString, QVariant> cliOption;
 
   cliOption = readCLIOptions(argc, argv);
