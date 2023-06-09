@@ -1,6 +1,7 @@
 #ifndef PDFPROCESSOR_H
 #define PDFPROCESSOR_H
 
+#include "imageProvider.h"
 #include "rect.h"
 #include <qpdf/QPDF.hh>
 #include <string>
@@ -22,7 +23,7 @@ class PDFProcessor {
         bool open(const std::string filename);
         void rotate(int degrees);
         void setPosition(int side);
-        void addImage(const std::string filename);
+        void addImage(ImageProvider *p, std::string link = "");
         void save(const std::string filename);
 };
 

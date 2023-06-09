@@ -79,10 +79,9 @@ void PDFProcessor::rotate(int degrees) {
 
 void PDFProcessor::setPosition(int side) { m_side = side; }
 
-void PDFProcessor::addImage(const std::string filename) {
+void PDFProcessor::addImage(ImageProvider *p, std::string link) {
     // Image object
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&m_pdf);
-    ImageProvider *p = new ImageProvider(filename.c_str());
     std::string imageString = std::string("<<"
                                           " /Type /XObject"
                                           " /Subtype /Image"
@@ -193,10 +192,24 @@ void PDFProcessor::addImage(const std::string filename) {
             imgTranslateX = pageWidth - 0.57 * imgWidth - sideMargin;
         imgTranslateY = pageHeight - imgHeight - topMargin;
     }
-    streamString +=
-        std::to_string(imgTranslateX) + " " + std::to_string(imgTranslateY);
-    streamString += " cm /ImEPStamp55 Do Q\n";
+
+    if (link.empty()) {
+        streamString +=
+            std::to_string(imgTranslateX) + " " + std::to_string(imgTranslateY);
+        streamString += " cm /ImEPStamp55 Do Q\n";
+    } else {
+        streamString +=
+            std::to_string(imgTranslateX) + " " + std::to_string(imgTranslateY);
+        streamString += " cm";
+        streamString +=
+            "\n<< /Type /Annot \n/Subtype /Link \n/Rect [33 67 575.18 809.18] \n\
+            /BS\n<</W 2\n>>\n/F 4\n \
+        /A << \n/Type /Action \n/S /URI \n/URI (http://example.com) \n>> \n>>\n";
+        streamString += "/ImEPStamp55 Do Q\n";
+    }
+
     logger << "Stream str: " << streamString << "\n";
+
     m_firstPage.addPageContents(
         QPDFObjectHandle::newStream(&m_pdf, streamString), false);
 }

@@ -7,11 +7,13 @@
 #include <qpdf/QPDFObjectHandle.hh>
 #include <qpdf/QPDFWriter.hh>
 #include <qpdf/QUtil.hh>
+#include <qrencode.h>
 
 class ImageProvider : public QPDFObjectHandle::StreamDataProvider {
     public:
         ImageProvider(int width, int height);
-        ImageProvider(const char *filename);
+        ImageProvider(const std::string filename);
+        ImageProvider(const QRcode *qr);
         virtual ~ImageProvider();
         virtual void provideStreamData(int objid, int generation,
                                        Pipeline *pipeline);
@@ -22,11 +24,13 @@ class ImageProvider : public QPDFObjectHandle::StreamDataProvider {
     private:
         int width;
         int height;
-        const char *filename;
+        std::string filename;
         Magick::Image img;
         Buffer *alphaBuf;
         unsigned char *alphaData;
         unsigned char *rgbData;
+
+        void processImage();
 };
 
 #endif // IMAGEPROVIDER_H
