@@ -9,7 +9,7 @@ using namespace boost::program_options;
 std::unordered_map<std::string, std::variant<std::string, int>>
 readCLIOptions(int argc, char *argv[]) {
     std::string inputPDF, outputPDF, imageFile, qrText;
-    int side = 0, assumeRotate = -1;
+    int assumeRotate = -1;
     std::unordered_map<std::string, std::variant<std::string, int>> cliOption;
 
     // parse options using boost::program_options
