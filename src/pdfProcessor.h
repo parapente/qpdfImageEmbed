@@ -16,6 +16,10 @@ class PDFProcessor {
         QPDFObjectHandle m_firstPage;
         QPDFObjectHandle m_mediabox;
 
+        std::string rand_str(int length);
+        std::string createNewImageName(std::string prefix);
+        void createImageStream(ImageProvider *p, std::string name);
+
     public:
         PDFProcessor(/* args */);
         ~PDFProcessor();

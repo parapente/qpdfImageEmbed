@@ -2,6 +2,7 @@
 #include "imageProvider.h"
 #include "logger.h"
 #include <qpdf/QPDFObjectHandle.hh>
+#include <random>
 
 PDFProcessor::PDFProcessor(/* args */) {}
 
@@ -83,7 +84,41 @@ void PDFProcessor::setPosition(int side) {
     logger << "Side: " << side << "\n";
 }
 
-void PDFProcessor::addImage(ImageProvider *p, float scale, std::string link) {
+std::string PDFProcessor::rand_str(int length) {
+    std::string chars{"abcdefghijklmnopqrstuvwxyz1234567890"};
+    std::random_device rd;
+    std::mt19937 generator(rd());
+
+    std::string output;
+    output.reserve(length);
+
+    while (length > 0) {
+        auto randNumb = generator();
+        while (randNumb > 36 && length--) {
+            output.push_back(chars[randNumb % 36]);
+            randNumb /= 36;
+        }
+    }
+
+    return output;
+}
+
+std::string PDFProcessor::createNewImageName(std::string prefix) {
+    std::string newName;
+    bool nameFound = true;
+
+    do {
+        newName = prefix + rand_str(6);
+        QPDFObjectHandle check = m_xobject.getKey("/" + newName);
+        if (check.isNull()) {
+            nameFound = false;
+        }
+    } while (nameFound);
+
+    return newName;
+}
+
+void PDFProcessor::createImageStream(ImageProvider *p, std::string name) {
     // Image object
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&m_pdf);
     std::string imageString = std::string("<<"
@@ -100,7 +135,7 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, std::string link) {
     std::shared_ptr<QPDFObjectHandle::StreamDataProvider> provider(p);
     image.replaceStreamData(provider, QPDFObjectHandle::newNull(),
                             QPDFObjectHandle::newNull());
-    m_xobject.replaceKey("/ImEPStamp55", image);
+    m_xobject.replaceKey("/" + name, image);
 
     // Transparency object
     QPDFObjectHandle transparency = QPDFObjectHandle::newStream(&m_pdf);
@@ -122,12 +157,18 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, std::string link) {
     transparency.replaceStreamData(transparencyProvider,
                                    QPDFObjectHandle::newNull(),
                                    QPDFObjectHandle::newNull());
-    m_xobject.replaceKey("/ImEPStamp55tr", transparency);
+    m_xobject.replaceKey("/" + name + "tr", transparency);
     std::string smaskString =
         std::string(std::to_string(transparency.getObjectID()) + " " +
                     std::to_string(transparency.getGeneration()) + " R");
     m_pdf.updateAllPagesCache();
     image.getDict().replaceKey("/SMask", transparency);
+}
+
+void PDFProcessor::addImage(ImageProvider *p, float scale, std::string link) {
+
+    std::string imageName = createNewImageName("ImEPStampR");
+    createImageStream(p, imageName);
 
     // To prevent our image appearing in unexpected places we save the initial
     // state at the beginning of the page and restore it at the end before
@@ -206,11 +247,11 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, std::string link) {
     if (link.empty()) {
         streamString +=
             std::to_string(imgTranslateX) + " " + std::to_string(imgTranslateY);
-        streamString += " cm /ImEPStamp55 Do Q\n";
+        streamString += " cm /" + imageName + " Do Q\n";
     } else {
         streamString +=
             std::to_string(imgTranslateX) + " " + std::to_string(imgTranslateY);
-        streamString += " cm /ImEPStamp55 Do Q\n";
+        streamString += " cm /" + imageName + " Do Q\n";
 
         QPDFObjectHandle annots = m_firstPage.getKeyIfDict("/Annots");
 
