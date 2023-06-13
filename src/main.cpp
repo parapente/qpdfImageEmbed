@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         pdf_processor.rotate(std::get<int>(cliOption["rotate"]));
     }
 
-    int side = -1;
+    int side = 0;
     if (cliOption.contains("side")) {
         side = std::get<int>(cliOption["side"]);
     }

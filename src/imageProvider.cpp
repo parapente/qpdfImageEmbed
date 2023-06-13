@@ -10,7 +10,7 @@ ImageProvider::ImageProvider(const std::string filename) : filename(filename) {
 }
 
 ImageProvider::ImageProvider(const QRcode *qr) {
-    Magick::Image image(Magick::Geometry(qr->width * 2, qr->width * 2),
+    Magick::Image image(Magick::Geometry(qr->width, qr->width),
                         Magick::Color("none"));
 
     Magick::Color black("black");
@@ -22,12 +22,13 @@ ImageProvider::ImageProvider(const QRcode *qr) {
     for (int row = 0; row < qr->width; row++) {
         for (int col = 0; col < qr->width; col++) {
             if ((qr->data[row * qr->width + col] & 1) == 1) {
-                int x = col * cellSize * 2; // Calculate the x-coordinate
-                int y = row * cellSize * 2; // Calculate the y-coordinate
+                int x = col * cellSize; // Calculate the x-coordinate
+                int y = row * cellSize; // Calculate the y-coordinate
 
-                Magick::DrawableRectangle rect(x, y, x + cellSize,
-                                               y + cellSize);
-                image.draw(rect);
+                image.draw(Magick::DrawablePoint(x, y));
+                // Magick::DrawableRectangle rect(x, y, x + cellSize,
+                //                                y + cellSize);
+                // image.draw(rect);
             }
         }
     }

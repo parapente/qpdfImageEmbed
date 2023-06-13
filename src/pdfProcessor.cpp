@@ -1,6 +1,7 @@
 #include "pdfProcessor.h"
 #include "imageProvider.h"
 #include "logger.h"
+#include <qpdf/QPDFObjectHandle.hh>
 
 PDFProcessor::PDFProcessor(/* args */) {}
 
@@ -77,9 +78,14 @@ void PDFProcessor::rotate(int degrees) {
     m_rotate = degrees;
 }
 
-void PDFProcessor::setPosition(int side) { m_side = side; }
+void PDFProcessor::setPosition(int side) {
+    m_side = side;
+    logger << "Side: " << side << "\n";
+}
 
 void PDFProcessor::addImage(ImageProvider *p, std::string link) {
+    const float scale = 1; // Scale down image
+
     // Image object
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&m_pdf);
     std::string imageString = std::string("<<"
@@ -129,10 +135,12 @@ void PDFProcessor::addImage(ImageProvider *p, std::string link) {
     // state at the beginning of the page and restore it at the end before
     // adding our image. Thanks go to David van Driessche @StackOverflow for
     // this elegant solution
+    const std::string saveState = std::string("Q q ");
+
     m_firstPage.addPageContents(QPDFObjectHandle::newStream(&m_pdf, "q\n"),
                                 true);
     std::string streamString;
-    int topMargin = 0;
+    int topMargin = 5;
     int sideMargin = 20;
     int imgHeight, imgWidth;
     float pageHeight, pageWidth;
@@ -140,7 +148,7 @@ void PDFProcessor::addImage(ImageProvider *p, std::string link) {
     pageWidth = m_pageRect.width();
     imgHeight = p->getHeight();
     imgWidth = p->getWidth();
-    streamString = std::string("Q q ");
+
     // If the page is rotated
     if (m_rotate != 0) {
         int cq, sq;
@@ -149,13 +157,23 @@ void PDFProcessor::addImage(ImageProvider *p, std::string link) {
         sq = sin((double)m_rotate * M_PI / 180);
         if (m_rotate == 90) {
             tx = m_pageRect.y();
-            ty = -m_pageRect.x() - pageWidth;
+            ty = m_pageRect.x() - pageWidth;
+
+            float tmp;
+            tmp = pageHeight;
+            pageHeight = pageWidth;
+            pageWidth = tmp;
         } else if (m_rotate == 180) {
-            tx = -m_pageRect.x() - pageWidth;
-            ty = -m_pageRect.y() - pageHeight;
+            tx = m_pageRect.x() - pageWidth;
+            ty = m_pageRect.y() - pageHeight;
         } else {
             tx = -m_pageRect.y() - pageHeight;
             ty = m_pageRect.x();
+
+            float tmp;
+            tmp = pageHeight;
+            pageHeight = pageWidth;
+            pageWidth = tmp;
         }
         streamString += std::to_string(cq) + " " + std::to_string(sq) + " " +
                         std::to_string(-sq) + " " + std::to_string(cq) +
@@ -168,30 +186,24 @@ void PDFProcessor::addImage(ImageProvider *p, std::string link) {
                         std::to_string(m_pageRect.y()) + " cm ";
     }
 
+    const std::string basic_transformations = streamString;
+
     // Set the appropriate image scaling according to page rotation
-    streamString += std::to_string(0.57 * imgWidth) + " 0 0 " +
-                    std::to_string(0.57 * imgHeight) + " ";
+    streamString += std::to_string(scale * imgWidth) + " 0 0 " +
+                    std::to_string(scale * imgHeight) + " ";
+
+    logger << "pageHeight: " << pageHeight << "\n";
+    logger << "pageWidth: " << pageWidth << "\n";
 
     int imgTranslateX, imgTranslateY;
-    if (m_rotate == 90 || m_rotate == 270) {
-        if (m_side == 0)
-            imgTranslateX = (pageHeight - 0.57 * imgWidth) / 2;
-        else if (m_side == 1)
-            imgTranslateX =
-                m_mediabox.getArrayItem(1).getNumericValue() + sideMargin;
-        else
-            imgTranslateX = pageHeight - 0.57 * imgWidth - sideMargin;
-        imgTranslateY = pageWidth - imgHeight - topMargin;
-    } else {
-        if (m_side == 0)
-            imgTranslateX = (pageWidth - 0.57 * imgWidth) / 2;
-        else if (m_side == 1)
-            imgTranslateX =
-                m_mediabox.getArrayItem(0).getNumericValue() + sideMargin;
-        else
-            imgTranslateX = pageWidth - 0.57 * imgWidth - sideMargin;
-        imgTranslateY = pageHeight - imgHeight - topMargin;
-    }
+    if (m_side == 0) {
+        imgTranslateX = pageWidth / 2 - scale * imgWidth;
+    } else if (m_side == 1)
+        imgTranslateX =
+            m_mediabox.getArrayItem(0).getNumericValue() + sideMargin;
+    else
+        imgTranslateX = pageWidth - scale * imgWidth - sideMargin;
+    imgTranslateY = pageHeight - scale * imgHeight - topMargin;
 
     if (link.empty()) {
         streamString +=
@@ -200,18 +212,49 @@ void PDFProcessor::addImage(ImageProvider *p, std::string link) {
     } else {
         streamString +=
             std::to_string(imgTranslateX) + " " + std::to_string(imgTranslateY);
-        streamString += " cm";
-        streamString +=
-            "\n<< /Type /Annot \n/Subtype /Link \n/Rect [33 67 575.18 809.18] \n\
-            /BS\n<</W 2\n>>\n/F 4\n \
-        /A << \n/Type /Action \n/S /URI \n/URI (http://example.com) \n>> \n>>\n";
-        streamString += "/ImEPStamp55 Do Q\n";
+        streamString += " cm /ImEPStamp55 Do Q\n";
+
+        QPDFObjectHandle annots = m_firstPage.getKeyIfDict("/Annots");
+
+        QPDFObjectHandle newAnnotation = QPDFObjectHandle::newDictionary();
+        newAnnotation.replaceKey("/Type", QPDFObjectHandle::newName("/Annot"));
+        newAnnotation.replaceKey("/Subtype",
+                                 QPDFObjectHandle::newName("/Link"));
+
+        QPDFObjectHandle appearance =
+            QPDFObjectHandle::newStream(&m_pdf, basic_transformations);
+        newAnnotation.replaceKey("/AP", appearance);
+
+        logger << "Rect: " << imgTranslateX << " " << imgTranslateY << " "
+               << imgTranslateX + scale * imgWidth << " "
+               << imgTranslateY + scale * imgHeight << "\n";
+        newAnnotation.replaceKey(
+            "/Rect",
+            QPDFObjectHandle::newFromRectangle(QPDFObjectHandle::Rectangle(
+                imgTranslateX, imgTranslateY, imgTranslateX + scale * imgWidth,
+                imgTranslateY + scale * imgHeight)));
+
+        QPDFObjectHandle anchor = QPDFObjectHandle::newDictionary();
+        anchor.replaceKey("/Type", QPDFObjectHandle::newName("/Action"));
+        anchor.replaceKey("/S", QPDFObjectHandle::newName("/URI"));
+        anchor.replaceKey("/URI", QPDFObjectHandle::newString(link));
+        newAnnotation.replaceKey("/A", anchor);
+
+        if (annots.isArray()) {
+            logger << "Appending to annots array\n";
+            annots.appendItem(newAnnotation);
+        } else {
+            logger << "Adding annots array\n";
+            QPDFObjectHandle newAnnots = QPDFObjectHandle::newArray();
+            newAnnots.appendItem(newAnnotation);
+            m_firstPage.replaceKey("/Annots", newAnnots);
+        }
     }
 
-    logger << "Stream str: " << streamString << "\n";
+    logger << "Stream str: " << saveState + streamString << "\n";
 
     m_firstPage.addPageContents(
-        QPDFObjectHandle::newStream(&m_pdf, streamString), false);
+        QPDFObjectHandle::newStream(&m_pdf, saveState + streamString), false);
 }
 
 void PDFProcessor::save(const std::string filename) {

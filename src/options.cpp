@@ -23,6 +23,7 @@ readCLIOptions(int argc, char *argv[]) {
     ("side", value<int>(), "Side of the document: 0 center (default), 1 left, 2 right")
     ("rotate", value<int>(), "Assume page is rotated by 0/90/180/270 degrees")
     ("qr", value<std::string>(), "Add QR instead of image using the specified text")
+    ("link", "QR value is a link")
     ("debug", "Print extra debug messages");
     // clang-format on
 
@@ -71,7 +72,10 @@ readCLIOptions(int argc, char *argv[]) {
     if (vm.count("qr")) {
         qrText = vm["qr"].as<std::string>();
 
-        cliOption["qrText"] = qrText;
+        if (vm.count("link"))
+            cliOption["qrText"] = qrText;
+        else
+            cliOption["qrText"] = std::string();
     }
 
     if (vm.count("debug")) {
