@@ -12,7 +12,8 @@ Logger logger;
 
 int main(int argc, char *argv[]) {
 
-    std::unordered_map<std::string, std::variant<std::string, int>> cliOption;
+    std::unordered_map<std::string, std::variant<std::string, int, float>>
+        cliOption;
 
     cliOption = readCLIOptions(argc, argv);
 
@@ -47,10 +48,13 @@ int main(int argc, char *argv[]) {
         logger << "QR width: " << qr->width << "\n";
 
         pdf_processor.addImage(new ImageProvider(qr),
+                               std::get<float>(cliOption["scale"]),
                                std::get<std::string>(cliOption["link"]));
     } else {
-        pdf_processor.addImage(new ImageProvider(
-            std::get<std::string>(cliOption["imageFile"]).c_str()));
+        pdf_processor.addImage(
+            new ImageProvider(
+                std::get<std::string>(cliOption["imageFile"]).c_str()),
+            std::get<float>(cliOption["scale"]));
     }
 
     pdf_processor.save(std::get<std::string>(cliOption["outputPDF"]));

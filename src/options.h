@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <variant>
 
-std::unordered_map<std::string, std::variant<std::string, int>>
+std::unordered_map<std::string, std::variant<std::string, int, float>>
 readCLIOptions(int argc, char *argv[]);
 
 #endif // OPTIONS_H

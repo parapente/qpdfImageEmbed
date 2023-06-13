@@ -6,11 +6,12 @@
 
 using namespace boost::program_options;
 
-std::unordered_map<std::string, std::variant<std::string, int>>
+std::unordered_map<std::string, std::variant<std::string, int, float>>
 readCLIOptions(int argc, char *argv[]) {
     std::string inputPDF, outputPDF, imageFile, qrText;
     int assumeRotate = -1;
-    std::unordered_map<std::string, std::variant<std::string, int>> cliOption;
+    std::unordered_map<std::string, std::variant<std::string, int, float>>
+        cliOption;
 
     // parse options using boost::program_options
     options_description desc("Allowed options:");
@@ -24,6 +25,7 @@ readCLIOptions(int argc, char *argv[]) {
     ("rotate", value<int>(), "Assume page is rotated by 0/90/180/270 degrees")
     ("qr", value<std::string>(), "Add QR instead of image using the specified text")
     ("link", "QR value is a link")
+    ("scale", value<float>(),"Scale image by a factor")
     ("debug", "Print extra debug messages");
     // clang-format on
 
@@ -34,6 +36,7 @@ readCLIOptions(int argc, char *argv[]) {
     posDesc.add("side", 1);
     posDesc.add("rotate", 1);
     posDesc.add("qr", 1);
+    posDesc.add("scale", 1);
 
     variables_map vm;
     store(
@@ -77,6 +80,11 @@ readCLIOptions(int argc, char *argv[]) {
             cliOption["link"] = qrText;
         else
             cliOption["link"] = std::string();
+    }
+
+    cliOption["scale"] = 1.0f;
+    if (vm.count("scale")) {
+        cliOption["scale"] = vm["scale"].as<float>();
     }
 
     if (vm.count("debug")) {

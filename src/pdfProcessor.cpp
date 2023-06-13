@@ -83,9 +83,7 @@ void PDFProcessor::setPosition(int side) {
     logger << "Side: " << side << "\n";
 }
 
-void PDFProcessor::addImage(ImageProvider *p, std::string link) {
-    const float scale = 1; // Scale down image
-
+void PDFProcessor::addImage(ImageProvider *p, float scale, std::string link) {
     // Image object
     QPDFObjectHandle image = QPDFObjectHandle::newStream(&m_pdf);
     std::string imageString = std::string("<<"
