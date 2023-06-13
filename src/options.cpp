@@ -71,11 +71,12 @@ readCLIOptions(int argc, char *argv[]) {
 
     if (vm.count("qr")) {
         qrText = vm["qr"].as<std::string>();
+        cliOption["qrText"] = qrText;
 
         if (vm.count("link"))
-            cliOption["qrText"] = qrText;
+            cliOption["link"] = qrText;
         else
-            cliOption["qrText"] = std::string();
+            cliOption["link"] = std::string();
     }
 
     if (vm.count("debug")) {

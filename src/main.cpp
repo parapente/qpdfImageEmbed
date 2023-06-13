@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
         logger << "QR width: " << qr->width << "\n";
 
         pdf_processor.addImage(new ImageProvider(qr),
-                               std::get<std::string>(cliOption["qrText"]));
+                               std::get<std::string>(cliOption["link"]));
     } else {
         pdf_processor.addImage(new ImageProvider(
             std::get<std::string>(cliOption["imageFile"]).c_str()));
