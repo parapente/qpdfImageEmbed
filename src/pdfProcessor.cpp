@@ -195,7 +195,8 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
     imgHeight = p->getHeight();
     imgWidth = p->getWidth();
 
-    QPDFMatrix pageRotation, pageTranslation, imgTransformation;
+    QPDFMatrix pageRotation, pageTranslation, pageTranslation2,
+        imgTransformation;
 
     // If the page is rotated
     if (m_rotate != 0) {
@@ -212,8 +213,6 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
         }
 
         streamString += pageTranslation.unparse() + " cm ";
-
-        pageTranslation = QPDFMatrix();
     }
 
     // Translation
@@ -225,8 +224,8 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
     else                    // Right
         imgTranslateX = pageWidth - scale * imgWidth - sideMargin;
     imgTranslateY = pageHeight - scale * imgHeight - topMargin;
-    pageTranslation.translate(imgTranslateX, imgTranslateY);
-    streamString += pageTranslation.unparse() + " cm ";
+    pageTranslation2.translate(imgTranslateX, imgTranslateY);
+    streamString += pageTranslation2.unparse() + " cm ";
 
     // Scale
     imgTransformation.scale(scale * imgWidth, scale * imgHeight);
@@ -244,6 +243,29 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
     } else {
         streamString += "/" + imageName + " Do Q\n";
 
+        double x1, y1, x2, y2;
+        if (m_rotate == 0) {
+            x1 = imgTranslateX;
+            x2 = x1 + scale * imgWidth;
+            y1 = imgTranslateY;
+            y2 = y1 + scale * imgHeight;
+        } else if (m_rotate == 90) {
+            x1 = pageHeight - imgTranslateY - scale * imgHeight;
+            x2 = x1 + scale * imgHeight;
+            y1 = imgTranslateX;
+            y2 = y1 + scale * imgWidth;
+        } else if (m_rotate == 180) {
+            x1 = pageWidth - imgTranslateX - scale * imgWidth;
+            x2 = x1 + scale * imgWidth;
+            y1 = pageHeight - imgTranslateY - scale * imgHeight;
+            y2 = y1 + scale * imgHeight;
+        } else { // 270
+            x1 = imgTranslateY;
+            x2 = x1 + scale * imgHeight;
+            y1 = pageWidth - imgTranslateX - scale * imgWidth;
+            y2 = y1 + scale * imgWidth;
+        }
+
         QPDFObjectHandle annots = m_firstPage.getKeyIfDict("/Annots");
 
         QPDFObjectHandle newAnnotation = QPDFObjectHandle::newDictionary();
@@ -251,18 +273,10 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
         newAnnotation.replaceKey("/Subtype",
                                  QPDFObjectHandle::newName("/Link"));
 
-        QPDFObjectHandle appearance =
-            QPDFObjectHandle::newStream(&m_pdf, basic_transformations);
-        newAnnotation.replaceKey("/AP", appearance);
-
-        logger << "Rect: " << imgTranslateX << " " << imgTranslateY << " "
-               << imgTranslateX + scale * imgWidth << " "
-               << imgTranslateY + scale * imgHeight << "\n";
+        logger << "Rect: " << x1 << " " << y1 << " " << x2 << " " << y2 << "\n";
         newAnnotation.replaceKey(
-            "/Rect",
-            QPDFObjectHandle::newFromRectangle(QPDFObjectHandle::Rectangle(
-                imgTranslateX, imgTranslateY, imgTranslateX + scale * imgWidth,
-                imgTranslateY + scale * imgHeight)));
+            "/Rect", QPDFObjectHandle::newFromRectangle(
+                         QPDFObjectHandle::Rectangle(x1, y1, x2, y2)));
 
         QPDFObjectHandle anchor = QPDFObjectHandle::newDictionary();
         anchor.replaceKey("/Type", QPDFObjectHandle::newName("/Action"));
