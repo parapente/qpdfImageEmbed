@@ -1,26 +1,40 @@
 # qpdfImageEmbed
+
 A utility to embed an image or a QR into a pdf file.
 ## Dependencies
+
 - qpdf (v11 or later)
 - boost_program_options
 - ImageMagick
 
 ## Build
+
 Install the necessary packages according to your linux distribution.
 
 In Debian/Ubuntu:
-```
+
+```bash
 apt install libqpdf-dev libboost-program-options-dev libmagick++-dev cmake gcc
 ```
 
 Then configure and compile the program:
-```
+
+```bash
 mkdir build
 cd build
 cmake .. && make
 ```
 
+## Install
+
+After the compilation has completed successfully we execute:
+
+```bash
+make install
+```
+
 ## Available options
+
 ```
   -h [ --help ]            Produce this help message
   -i [ --input-file ] arg  Input file

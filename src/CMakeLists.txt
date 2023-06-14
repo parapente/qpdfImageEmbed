@@ -28,3 +28,5 @@ add_executable(qpdfImageEmbed main.cpp imageProvider.cpp options.cpp rect.cpp lo
 
 target_include_directories(qpdfImageEmbed PRIVATE "${PROJECT_BINARY_DIR}/src" "${ImageMagick_Magick++_INCLUDE_DIRS}")
 target_link_libraries(qpdfImageEmbed PRIVATE qpdf::libqpdf boost_program_options "${ImageMagick_Magick++_LIBRARY}" qrencode)
+
+install(TARGETS qpdfImageEmbed DESTINATION bin)
