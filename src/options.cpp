@@ -31,21 +31,8 @@ readCLIOptions(int argc, char *argv[]) {
     ("debug", "Print extra debug messages");
     // clang-format on
 
-    positional_options_description posDesc;
-    posDesc.add("input-file", 1);
-    posDesc.add("stamp", 1);
-    posDesc.add("output-file", 1);
-    posDesc.add("side", 1);
-    posDesc.add("rotate", 1);
-    posDesc.add("qr", 1);
-    posDesc.add("scale", 1);
-    posDesc.add("top-margin", 1);
-    posDesc.add("side-margin", 1);
-
     variables_map vm;
-    store(
-        command_line_parser(argc, argv).options(desc).positional(posDesc).run(),
-        vm);
+    store(command_line_parser(argc, argv).options(desc).run(), vm);
     notify(vm);
 
     if (vm.count("input-file")) {
