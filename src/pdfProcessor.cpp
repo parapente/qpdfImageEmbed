@@ -234,15 +234,14 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
     logger << "pageHeight: " << pageHeight << "\n";
     logger << "pageWidth: " << pageWidth << "\n";
 
-    const std::string basic_transformations = streamString;
-
-    // Set the appropriate image scaling according to page rotation
-
+    // Check if we have a link annotation
     if (link.empty()) {
         streamString += "/" + imageName + " Do Q\n";
     } else {
         streamString += "/" + imageName + " Do Q\n";
 
+        // Calculate the annotation position
+        // (it doesn't follow the transformations applied above)
         double x1, y1, x2, y2;
         if (m_rotate == 0) {
             x1 = imgTranslateX;
