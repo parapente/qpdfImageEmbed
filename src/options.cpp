@@ -26,6 +26,8 @@ readCLIOptions(int argc, char *argv[]) {
     ("qr", value<std::string>(), "Add QR instead of image using the specified text")
     ("link", "QR value is a link")
     ("scale", value<float>(),"Scale image by a factor")
+    ("top-margin", value<float>(),"Set a margin for the image placement from the top of the page")
+    ("side-margin", value<float>(),"Set a margin for the image placement from the sides of the page")
     ("debug", "Print extra debug messages");
     // clang-format on
 
@@ -37,6 +39,8 @@ readCLIOptions(int argc, char *argv[]) {
     posDesc.add("rotate", 1);
     posDesc.add("qr", 1);
     posDesc.add("scale", 1);
+    posDesc.add("top-margin", 1);
+    posDesc.add("side-margin", 1);
 
     variables_map vm;
     store(
@@ -85,6 +89,16 @@ readCLIOptions(int argc, char *argv[]) {
     cliOption["scale"] = 1.0f;
     if (vm.count("scale")) {
         cliOption["scale"] = vm["scale"].as<float>();
+    }
+
+    cliOption["top-margin"] = 10.0f;
+    if (vm.count("top-margin")) {
+        cliOption["top-margin"] = vm["top-margin"].as<float>();
+    }
+
+    cliOption["side-margin"] = 15.0f;
+    if (vm.count("side-margin")) {
+        cliOption["side-margin"] = vm["side-margin"].as<float>();
     }
 
     if (vm.count("debug")) {

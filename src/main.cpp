@@ -49,12 +49,16 @@ int main(int argc, char *argv[]) {
 
         pdf_processor.addImage(new ImageProvider(qr),
                                std::get<float>(cliOption["scale"]),
+                               std::get<float>(cliOption["top-margin"]),
+                               std::get<float>(cliOption["side-margin"]),
                                std::get<std::string>(cliOption["link"]));
     } else {
         pdf_processor.addImage(
             new ImageProvider(
                 std::get<std::string>(cliOption["imageFile"]).c_str()),
-            std::get<float>(cliOption["scale"]));
+            std::get<float>(cliOption["scale"]),
+            std::get<float>(cliOption["top-margin"]),
+            std::get<float>(cliOption["side-margin"]));
     }
 
     pdf_processor.save(std::get<std::string>(cliOption["outputPDF"]));

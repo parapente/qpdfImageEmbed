@@ -27,7 +27,8 @@ class PDFProcessor {
         bool open(const std::string filename);
         void rotate(int degrees);
         void setPosition(int side);
-        void addImage(ImageProvider *p, float scale, std::string link = "");
+        void addImage(ImageProvider *p, float scale, float topMargin,
+                      float sideMargin, std::string link = "");
         void save(const std::string filename);
 };
 

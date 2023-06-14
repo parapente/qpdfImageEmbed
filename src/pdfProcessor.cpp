@@ -165,7 +165,8 @@ void PDFProcessor::createImageStream(ImageProvider *p, std::string name) {
     image.getDict().replaceKey("/SMask", transparency);
 }
 
-void PDFProcessor::addImage(ImageProvider *p, float scale, std::string link) {
+void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
+                            float sideMargin, std::string link) {
 
     std::string imageName = createNewImageName("ImEPStampR");
     createImageStream(p, imageName);
@@ -178,9 +179,8 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, std::string link) {
 
     m_firstPage.addPageContents(QPDFObjectHandle::newStream(&m_pdf, "q\n"),
                                 true);
+
     std::string streamString;
-    int topMargin = 5;
-    int sideMargin = 20;
     int imgHeight, imgWidth;
     float pageHeight, pageWidth;
     pageHeight = m_pageRect.height();
