@@ -8,6 +8,7 @@
     "QPDF",
     "cropbox",
     "mediabox",
+    "rotatex",
     "smask",
     "xobject"
   ],

@@ -1,6 +1,7 @@
 #include "pdfProcessor.h"
 #include "imageProvider.h"
 #include "logger.h"
+#include <qpdf/QPDFMatrix.hh>
 #include <qpdf/QPDFObjectHandle.hh>
 #include <random>
 
@@ -183,75 +184,65 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
     std::string streamString;
     int imgHeight, imgWidth;
     float pageHeight, pageWidth;
-    pageHeight = m_pageRect.height();
-    pageWidth = m_pageRect.width();
+
+    if (m_rotate == 90 || m_rotate == 270) {
+        pageHeight = m_pageRect.width();
+        pageWidth = m_pageRect.height();
+    } else {
+        pageHeight = m_pageRect.height();
+        pageWidth = m_pageRect.width();
+    }
     imgHeight = p->getHeight();
     imgWidth = p->getWidth();
 
+    QPDFMatrix pageRotation, pageTranslation, imgTransformation;
+
     // If the page is rotated
     if (m_rotate != 0) {
-        int cq, sq;
-        int tx, ty;
-        cq = cos((double)m_rotate * M_PI / 180);
-        sq = sin((double)m_rotate * M_PI / 180);
+        pageRotation.rotatex90(m_rotate);
+
+        streamString += pageRotation.unparse() + " cm ";
+
         if (m_rotate == 90) {
-            tx = m_pageRect.y();
-            ty = m_pageRect.x() - pageWidth;
-
-            float tmp;
-            tmp = pageHeight;
-            pageHeight = pageWidth;
-            pageWidth = tmp;
+            pageTranslation.translate(0, -pageHeight);
         } else if (m_rotate == 180) {
-            tx = m_pageRect.x() - pageWidth;
-            ty = m_pageRect.y() - pageHeight;
-        } else {
-            tx = -m_pageRect.y() - pageHeight;
-            ty = m_pageRect.x();
-
-            float tmp;
-            tmp = pageHeight;
-            pageHeight = pageWidth;
-            pageWidth = tmp;
+            pageTranslation.translate(-pageWidth, -pageHeight);
+        } else if (m_rotate == 270) {
+            pageTranslation.translate(-pageWidth, 0);
         }
-        streamString += std::to_string(cq) + " " + std::to_string(sq) + " " +
-                        std::to_string(-sq) + " " + std::to_string(cq) +
-                        " 0 0 cm ";
-        streamString += std::string("1 0 0 1 ") + std::to_string(tx) + " " +
-                        std::to_string(ty) + " cm ";
-    } else {
-        streamString += std::string("1 0 0 1 ") +
-                        std::to_string(m_pageRect.x()) + " " +
-                        std::to_string(m_pageRect.y()) + " cm ";
+
+        streamString += pageTranslation.unparse() + " cm ";
+
+        pageTranslation = QPDFMatrix();
     }
 
-    const std::string basic_transformations = streamString;
+    // Translation
+    int imgTranslateX, imgTranslateY;
+    if (m_side == 0) {      // Center
+        imgTranslateX = m_pageRect.x() + (pageWidth - scale * imgWidth) / 2;
+    } else if (m_side == 1) // Left
+        imgTranslateX = m_pageRect.x() + sideMargin;
+    else                    // Right
+        imgTranslateX = pageWidth - scale * imgWidth - sideMargin;
+    imgTranslateY = pageHeight - scale * imgHeight - topMargin;
+    pageTranslation.translate(imgTranslateX, imgTranslateY);
+    streamString += pageTranslation.unparse() + " cm ";
 
-    // Set the appropriate image scaling according to page rotation
-    streamString += std::to_string(scale * imgWidth) + " 0 0 " +
-                    std::to_string(scale * imgHeight) + " ";
+    // Scale
+    imgTransformation.scale(scale * imgWidth, scale * imgHeight);
+    streamString += imgTransformation.unparse() + " cm ";
 
     logger << "pageHeight: " << pageHeight << "\n";
     logger << "pageWidth: " << pageWidth << "\n";
 
-    int imgTranslateX, imgTranslateY;
-    if (m_side == 0) {
-        imgTranslateX = pageWidth / 2 - scale * imgWidth;
-    } else if (m_side == 1)
-        imgTranslateX =
-            m_mediabox.getArrayItem(0).getNumericValue() + sideMargin;
-    else
-        imgTranslateX = pageWidth - scale * imgWidth - sideMargin;
-    imgTranslateY = pageHeight - scale * imgHeight - topMargin;
+    const std::string basic_transformations = streamString;
+
+    // Set the appropriate image scaling according to page rotation
 
     if (link.empty()) {
-        streamString +=
-            std::to_string(imgTranslateX) + " " + std::to_string(imgTranslateY);
-        streamString += " cm /" + imageName + " Do Q\n";
+        streamString += "/" + imageName + " Do Q\n";
     } else {
-        streamString +=
-            std::to_string(imgTranslateX) + " " + std::to_string(imgTranslateY);
-        streamString += " cm /" + imageName + " Do Q\n";
+        streamString += "/" + imageName + " Do Q\n";
 
         QPDFObjectHandle annots = m_firstPage.getKeyIfDict("/Annots");
 
