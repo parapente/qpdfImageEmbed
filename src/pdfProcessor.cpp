@@ -10,7 +10,13 @@ PDFProcessor::PDFProcessor(/* args */) {}
 PDFProcessor::~PDFProcessor() {}
 
 bool PDFProcessor::open(const std::string filename) {
-    m_pdf.processFile(filename.c_str());
+    try {
+        m_pdf.processFile(filename.c_str());
+    } catch (std::runtime_error &e) {
+        std::cerr << "Caught exception: " << e.what() << std::endl;
+        std::cerr << "Does " << filename << " exist?" << std::endl;
+        exit(4);
+    }
     logger << "PDF version: " << m_pdf.getPDFVersion() << "\n";
 
     std::vector<QPDFObjectHandle> pages;
@@ -301,6 +307,13 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
 }
 
 void PDFProcessor::save(const std::string filename) {
-    QPDFWriter w(m_pdf, filename.c_str());
-    w.write();
+    try {
+        QPDFWriter w(m_pdf, filename.c_str());
+        w.write();
+    } catch (std::runtime_error &e) {
+        std::cerr << "Caught exception: " << e.what() << std::endl;
+        std::cerr << "Cannot create output file '" << filename << "'"
+                  << std::endl;
+        exit(5);
+    }
 }

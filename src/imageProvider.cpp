@@ -5,7 +5,13 @@ ImageProvider::ImageProvider(int width, int height)
     : width(width), height(height) {}
 
 ImageProvider::ImageProvider(const std::string filename) : filename(filename) {
-    img.read(filename);
+    try {
+        img.read(filename);
+    } catch (Magick::Exception &e) {
+        std::cerr << "Caught exception: " << e.what() << std::endl;
+        std::cerr << "Does " << filename << " exist?" << std::endl;
+        exit(4);
+    }
     processImage();
 }
 
