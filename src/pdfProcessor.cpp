@@ -306,6 +306,89 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
         QPDFObjectHandle::newStream(&m_pdf, saveState + streamString), false);
 }
 
+void PDFProcessor::addExtraText(std::string text, float x, float y,
+                                float font_size, std::string basefont,
+                                std::string style) {
+    const std::string basefont_full_name =
+        basefont + (style == "" ? "" : "-" + style);
+    // Create a new font dictionary
+    QPDFObjectHandle newFont = QPDFObjectHandle::parse("<<\n"
+                                                       "  /Type /Font\n"
+                                                       "  /Subtype /Type1\n"
+                                                       "  /BaseFont /" +
+                                                       basefont_full_name +
+                                                       "\n"
+                                                       ">>");
+
+    // Get the fist page's resources dictionary
+    QPDFObjectHandle resources = m_firstPage.getKey("/Resources");
+
+    // Check if the resources dictionary already exists
+    if (!resources.isDictionary()) {
+        // Create a new resources dictionary if it doesn't exist
+        resources = m_firstPage.newDictionary();
+        m_firstPage.replaceKey("/Resources", resources);
+    }
+
+    // Get the fonts dictionary from the resources dictionary
+    QPDFObjectHandle fonts = resources.getKey("/Font");
+
+    // Check if the fonts dictionary already exists
+    if (!fonts.isDictionary()) {
+        // Create a new fonts dictionary if it doesn't exist
+        fonts = m_pdf.makeIndirectObject(QPDFObjectHandle::newDictionary());
+        resources.replaceKey("/Font", fonts);
+    }
+
+    std::string new_font_name = "/F";
+    int font_name_increment = 1;
+    bool found = false;
+    std::string found_name;
+    auto font_names = fonts.getKeys();
+
+    // Look for the font
+    for (auto font_name : font_names) {
+        // Test if /F + i is the name of the font
+        if ((new_font_name + std::to_string(font_name_increment)) ==
+            font_name) {
+            font_name_increment++;
+        }
+
+        QPDFObjectHandle f = fonts.getKeyIfDict(font_name);
+
+        if (f.isNull())
+            continue;
+
+        QPDFObjectHandle basefont = f.getKey("/BaseFont");
+        if (basefont.isNull())
+            continue;
+
+        if (basefont.isName() &&
+            basefont.getName() == "/" + basefont_full_name) {
+            found = true;
+            found_name = font_name;
+        }
+    }
+
+    if (!found) {
+        // Add the new font to the fonts dictionary
+        fonts.replaceKey(new_font_name + std::to_string(font_name_increment),
+                         newFont);
+    } else {
+        new_font_name = found_name;
+    }
+
+    // TODO: Position text
+    m_firstPage.addPageContents(
+        QPDFObjectHandle::newStream(
+            &m_pdf, new_font_name + std::to_string(font_name_increment) + " " +
+                        std::to_string(font_size) + " Tf 1 0 0 1 " +
+                        std::to_string(x) + " " + std::to_string(y) + " Tm (" +
+                        text + ") Tj"),
+        false);
+    logger << "Adding text...\n";
+}
+
 void PDFProcessor::save(const std::string filename) {
     try {
         QPDFWriter w(m_pdf, filename.c_str());

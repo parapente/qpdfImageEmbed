@@ -6,10 +6,12 @@
 
 using namespace boost::program_options;
 
-std::unordered_map<std::string, std::variant<std::string, int, float>>
+std::unordered_map<std::string, std::variant<std::string, int, float,
+                                             std::vector<std::string>>>
 readCLIOptions(int argc, char *argv[]) {
     std::string inputPDF, outputPDF, imageFile, qrText;
-    std::unordered_map<std::string, std::variant<std::string, int, float>>
+    std::unordered_map<std::string, std::variant<std::string, int, float,
+                                                 std::vector<std::string>>>
         cliOption;
     bool invalid_value = false;
 
@@ -28,6 +30,9 @@ readCLIOptions(int argc, char *argv[]) {
         ("scale", value<float>()->default_value(1),"Scale image by a factor eg. 0.5")
         ("top-margin", value<float>()->default_value(10),"Set a margin for the image placement from the top of the page")
         ("side-margin", value<float>()->default_value(15),"Set a margin for the image placement from the sides of the page")
+        ("add-text", value<std::vector<std::string>>()->multitoken(), "Add extra text to the first page. It can take multiple "
+            "strings of the form '[x,y:][size:][style:]text' where x,y are the coordinates where the text will appear, size "
+            "is a float and gives the font size of the text and style can be 'i', 'b', 'bi', 'ib' for italic, bold and bold+italic")
         ("debug", "Print extra debug messages");
     // clang-format on
 
@@ -122,6 +127,10 @@ readCLIOptions(int argc, char *argv[]) {
 
     cliOption["side-margin"] = vm["side-margin"].as<float>();
 
+    cliOption["text"] = vm.count("add-text")
+                            ? vm["add-text"].as<std::vector<std::string>>()
+                            : std::vector<std::string>();
+
     if (vm.count("debug")) {
         logger.setEnabled(true);
     }
@@ -129,7 +138,8 @@ readCLIOptions(int argc, char *argv[]) {
     // We cannot (yet) embed an image and add a qr in the same operation
     if ((cliOption.contains("qrText") && cliOption.contains("imageFile")) ||
         (argc < 4) ||
-        (!cliOption.contains("qrText") && !cliOption.contains("imageFile")) ||
+        (!cliOption.contains("qrText") && !cliOption.contains("imageFile") &&
+         !cliOption.contains("text")) ||
         vm.empty() || vm.count("help")) {
         std::cout << desc << std::endl;
         exit(1);

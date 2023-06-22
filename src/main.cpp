@@ -3,6 +3,7 @@
 #include <qrencode.h>
 
 #include "config.h"
+#include "extraText.h"
 #include "logger.h"
 #include "options.h"
 #include "pdfProcessor.h"
@@ -12,7 +13,8 @@ Logger logger;
 
 int main(int argc, char *argv[]) {
 
-    std::unordered_map<std::string, std::variant<std::string, int, float>>
+    std::unordered_map<std::string, std::variant<std::string, int, float,
+                                                 std::vector<std::string>>>
         cliOption;
 
     cliOption = readCLIOptions(argc, argv);
@@ -59,6 +61,19 @@ int main(int argc, char *argv[]) {
             std::get<float>(cliOption["scale"]),
             std::get<float>(cliOption["top-margin"]),
             std::get<float>(cliOption["side-margin"]));
+    }
+
+    // Add extra text if requested
+    const std::vector<std::string> text_vector =
+        std::get<std::vector<std::string>>(cliOption["text"]);
+    for (auto text : text_vector) {
+        ExtraText parsed_text(text);
+
+        if (text != "") {
+            pdf_processor.addExtraText(parsed_text.text(), parsed_text.x(),
+                                       parsed_text.y(), parsed_text.font_size(),
+                                       "Helvetica", parsed_text.style());
+        }
     }
 
     pdf_processor.save(std::get<std::string>(cliOption["outputPDF"]));

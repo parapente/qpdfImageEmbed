@@ -29,6 +29,8 @@ class PDFProcessor {
         void setPosition(int side);
         void addImage(ImageProvider *p, float scale, float topMargin,
                       float sideMargin, std::string link = "");
+        void addExtraText(std::string text, float x, float y, float font_size,
+                          std::string basefont, std::string style);
         void save(const std::string filename);
 };
 
