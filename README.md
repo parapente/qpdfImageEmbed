@@ -6,6 +6,7 @@ A utility to embed an image or a QR into a pdf file.
 - qpdf (v11 or later)
 - boost_program_options
 - ImageMagick
+- libqrencode
 
 ## Build
 
@@ -14,7 +15,7 @@ Install the necessary packages according to your linux distribution.
 In Debian/Ubuntu:
 
 ```bash
-apt install libqpdf-dev libboost-program-options-dev libmagick++-dev cmake gcc
+apt install libqpdf-dev libboost-program-options-dev libmagick++-dev libqrencode-dev cmake gcc
 ```
 
 Then configure and compile the program:
