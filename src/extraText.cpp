@@ -37,7 +37,7 @@ ExtraText::ExtraText(std::string text) {
 
         if (std::regex_match(token, match, style_r)) {
             if (match[1].str() == "i") {
-                m_style = "Italic";
+                m_style = "Oblique";
             }
 
             if (match[1].str() == "b") {
@@ -45,7 +45,7 @@ ExtraText::ExtraText(std::string text) {
             }
 
             if (match[1].str() == "bi" || match[1].str() == "ib") {
-                m_style = "BoldItalic";
+                m_style = "BoldOblique";
             }
 
             logger << "ExtraText.style = " << m_style << "\n";
