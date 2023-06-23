@@ -378,13 +378,12 @@ void PDFProcessor::addExtraText(std::string text, float x, float y,
         new_font_name = found_name;
     }
 
-    // TODO: Position text
     m_firstPage.addPageContents(
         QPDFObjectHandle::newStream(
-            &m_pdf, new_font_name + std::to_string(font_name_increment) + " " +
-                        std::to_string(font_size) + " Tf 1 0 0 1 " +
-                        std::to_string(x) + " " + std::to_string(y) + " Tm (" +
-                        text + ") Tj"),
+            &m_pdf,
+            "BT " + new_font_name + std::to_string(font_name_increment) + " " +
+                std::to_string(font_size) + " Tf 1 0 0 1 " + std::to_string(x) +
+                " " + std::to_string(y) + " Tm (" + text + ") Tj ET"),
         false);
     logger << "Adding text...\n";
 }
