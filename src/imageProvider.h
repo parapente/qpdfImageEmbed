@@ -29,6 +29,7 @@ class ImageProvider : public QPDFObjectHandle::StreamDataProvider {
         Buffer *alphaBuf;
         unsigned char *alphaData;
         unsigned char *rgbData;
+        const QRcode *qr;
 
         void processImage();
 };

@@ -135,9 +135,7 @@ readCLIOptions(int argc, char *argv[]) {
         logger.setEnabled(true);
     }
 
-    // We cannot (yet) embed an image and add a qr in the same operation
-    if ((cliOption.contains("qrText") && cliOption.contains("imageFile")) ||
-        (argc < 4) ||
+    if ((argc < 4) ||
         (!cliOption.contains("qrText") && !cliOption.contains("imageFile") &&
          !cliOption.contains("text")) ||
         vm.empty() || vm.count("help")) {

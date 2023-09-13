@@ -54,7 +54,9 @@ int main(int argc, char *argv[]) {
                                std::get<float>(cliOption["top-margin"]),
                                std::get<float>(cliOption["side-margin"]),
                                std::get<std::string>(cliOption["link"]));
-    } else {
+    }
+
+    if (cliOption.contains("imageFile")) {
         pdf_processor.addImage(
             new ImageProvider(
                 std::get<std::string>(cliOption["imageFile"]).c_str()),
