@@ -1,6 +1,8 @@
 #include "imageProvider.h"
 #include "logger.h"
 
+using namespace MagickCore;
+
 ImageProvider::ImageProvider(int width, int height)
     : width(width), height(height) {}
 
@@ -16,8 +18,11 @@ ImageProvider::ImageProvider(const std::string filename) : filename(filename) {
 }
 
 ImageProvider::ImageProvider(const QRcode *qr) {
+    this->qr = qr;
+
     Magick::Image image(Magick::Geometry(qr->width, qr->width),
-                        Magick::Color("none"));
+                        Magick::Color(Quantum(0), Quantum(0), Quantum(0),
+                                      Quantum(QuantumRange)));
 
     Magick::Color black("black");
     image.fillColor(black);
@@ -47,7 +52,9 @@ ImageProvider::~ImageProvider() {}
 
 void ImageProvider::provideStreamData(int objid, int generation,
                                       Pipeline *pipeline) {
-    if (!filename.empty()) {
+    // If we have an empty image
+    if (filename.empty() && qr == nullptr) {
+        // Paint an orange rectangle
         for (int i = 0; i < width * height; ++i) {
             pipeline->write(QUtil::unsigned_char_pointer("\xff\x7f\x00"), 3);
         }
@@ -72,11 +79,9 @@ void ImageProvider::processImage() {
     logger << "Image height: " << height << "\n";
 
     alphaData = new unsigned char[width * height];
-    img.write(0, 0, width, height, "A", MagickCore::StorageType::CharPixel,
-              alphaData);
+    img.write(0, 0, width, height, "A", StorageType::CharPixel, alphaData);
     alphaBuf = new Buffer(alphaData, width * height);
 
     rgbData = new unsigned char[width * height * 3];
-    img.write(0, 0, width, height, "RGB", MagickCore::StorageType::CharPixel,
-              rgbData);
+    img.write(0, 0, width, height, "RGB", StorageType::CharPixel, rgbData);
 }
