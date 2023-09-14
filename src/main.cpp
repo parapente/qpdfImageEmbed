@@ -28,11 +28,11 @@ int main(int argc, char *argv[]) {
         pdf_processor.rotate(std::get<int>(cliOption["rotate"]));
     }
 
-    int side = 0;
-    if (cliOption.contains("side")) {
-        side = std::get<int>(cliOption["side"]);
+    int qr_side = 0;
+    if (cliOption.contains("qr-side")) {
+        qr_side = std::get<int>(cliOption["qr-side"]);
     }
-    pdf_processor.setPosition(side);
+    pdf_processor.setPosition(qr_side);
 
     if (cliOption.contains("qrText")) {
         logger << "QR Text: " << std::get<std::string>(cliOption["qrText"])
@@ -50,19 +50,25 @@ int main(int argc, char *argv[]) {
         logger << "QR width: " << qr->width << "\n";
 
         pdf_processor.addImage(new ImageProvider(qr),
-                               std::get<float>(cliOption["scale"]),
-                               std::get<float>(cliOption["top-margin"]),
-                               std::get<float>(cliOption["side-margin"]),
+                               std::get<float>(cliOption["qr-scale"]),
+                               std::get<float>(cliOption["qr-top-margin"]),
+                               std::get<float>(cliOption["qr-side-margin"]),
                                std::get<std::string>(cliOption["link"]));
     }
+
+    int img_side = 0;
+    if (cliOption.contains("img-side")) {
+        img_side = std::get<int>(cliOption["img-side"]);
+    }
+    pdf_processor.setPosition(img_side);
 
     if (cliOption.contains("imageFile")) {
         pdf_processor.addImage(
             new ImageProvider(
                 std::get<std::string>(cliOption["imageFile"]).c_str()),
-            std::get<float>(cliOption["scale"]),
-            std::get<float>(cliOption["top-margin"]),
-            std::get<float>(cliOption["side-margin"]));
+            std::get<float>(cliOption["img-scale"]),
+            std::get<float>(cliOption["img-top-margin"]),
+            std::get<float>(cliOption["img-side-margin"]));
     }
 
     // Add extra text if requested
