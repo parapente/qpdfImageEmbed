@@ -63,12 +63,23 @@ int main(int argc, char *argv[]) {
     pdf_processor.setPosition(img_side);
 
     if (cliOption.contains("imageFile")) {
-        pdf_processor.addImage(
-            new ImageProvider(
-                std::get<std::string>(cliOption["imageFile"]).c_str()),
-            std::get<float>(cliOption["img-scale"]),
-            std::get<float>(cliOption["img-top-margin"]),
-            std::get<float>(cliOption["img-side-margin"]));
+        if (cliOption.contains("img-x")) {
+            Point p(std::get<float>(cliOption["img-x"]),
+                    std::get<float>(cliOption["img-y"]));
+            pdf_processor.addImage(
+                new ImageProvider(
+                    std::get<std::string>(cliOption["imageFile"]).c_str()),
+                std::get<float>(cliOption["img-scale"]), 0, 0,
+                std::get<std::string>(cliOption["img-link-to"]), &p);
+        } else {
+            pdf_processor.addImage(
+                new ImageProvider(
+                    std::get<std::string>(cliOption["imageFile"]).c_str()),
+                std::get<float>(cliOption["img-scale"]),
+                std::get<float>(cliOption["img-top-margin"]),
+                std::get<float>(cliOption["img-side-margin"]),
+                std::get<std::string>(cliOption["img-link-to"]));
+        }
     }
 
     // Add extra text if requested
