@@ -2,6 +2,7 @@
 #define PDFPROCESSOR_H
 
 #include "imageProvider.h"
+#include "point.h"
 #include "rect.h"
 #include <qpdf/QPDF.hh>
 #include <string>
@@ -28,7 +29,8 @@ class PDFProcessor {
         void rotate(int degrees);
         void setPosition(int side);
         void addImage(ImageProvider *p, float scale, float topMargin,
-                      float sideMargin, std::string link = "");
+                      float sideMargin, std::string link = "",
+                      Point *exactPosition = nullptr);
         void addExtraText(std::string text, float x, float y, float font_size,
                           std::string basefont, std::string style);
         void save(const std::string filename);

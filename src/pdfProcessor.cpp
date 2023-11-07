@@ -173,7 +173,8 @@ void PDFProcessor::createImageStream(ImageProvider *p, std::string name) {
 }
 
 void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
-                            float sideMargin, std::string link) {
+                            float sideMargin, std::string link,
+                            Point *exactPosition) {
 
     std::string imageName = createNewImageName("ImEPStampR");
     createImageStream(p, imageName);
@@ -222,14 +223,21 @@ void PDFProcessor::addImage(ImageProvider *p, float scale, float topMargin,
     }
 
     // Translation
-    int imgTranslateX, imgTranslateY;
-    if (m_side == 0) {      // Center
-        imgTranslateX = m_pageRect.x() + (pageWidth - scale * imgWidth) / 2;
-    } else if (m_side == 1) // Left
-        imgTranslateX = m_pageRect.x() + sideMargin;
-    else                    // Right
-        imgTranslateX = pageWidth - scale * imgWidth - sideMargin;
-    imgTranslateY = pageHeight - scale * imgHeight - topMargin;
+    double imgTranslateX, imgTranslateY;
+
+    if (exactPosition == nullptr) {
+        if (m_side == 0) { // Center
+            imgTranslateX = m_pageRect.x() + (pageWidth - scale * imgWidth) / 2;
+        } else if (m_side == 1) // Left
+            imgTranslateX = m_pageRect.x() + sideMargin;
+        else // Right
+            imgTranslateX = pageWidth - scale * imgWidth - sideMargin;
+        imgTranslateY = pageHeight - scale * imgHeight - topMargin;
+    } else {
+        imgTranslateX = exactPosition->x();
+        imgTranslateY = exactPosition->y();
+    }
+
     pageTranslation2.translate(imgTranslateX, imgTranslateY);
     streamString += pageTranslation2.unparse() + " cm ";
 

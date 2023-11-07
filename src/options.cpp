@@ -28,10 +28,19 @@ readCLIOptions(int argc, char *argv[]) {
     options_description imgOptions("Image");
     imgOptions.add_options()
         ("stamp,s", value<std::string>(), "Image to embed")
-        ("img-side", value<int>()->default_value(0), "Side of the document: 0 center (default), 1 left, 2 right")
         ("img-scale", value<float>()->default_value(1),"Scale image by a factor eg. 0.5")
-        ("img-top-margin", value<float>()->default_value(10),"Set a margin for the image placement from the top of the page")
-        ("img-side-margin", value<float>()->default_value(15),"Set a margin for the image placement from the sides of the page");
+        ("img-link-to", value<std::string>()->default_value(""), "Image will be clickable linking to the url passed as argument");
+
+    options_description imgRelPlacement("Image relative placement");
+    imgRelPlacement.add_options()
+        ("img-side", value<int>(), "Side of the document: 0 center (default), 1 left, 2 right")
+        ("img-top-margin", value<float>(),"Set a margin for the image placement from the top of the page")
+        ("img-side-margin", value<float>(),"Set a margin for the image placement from the sides of the page");
+
+    options_description imgAbsPlacement("Image absolute placement");
+    imgAbsPlacement.add_options()
+        ("img-x", value<float>(), "x position from the left of the page (positive right)")
+        ("img-y", value<float>(),"y position from the bottom of the page (positive up)");
 
     options_description qrOptions("QR");
     qrOptions.add_options()
@@ -49,7 +58,13 @@ readCLIOptions(int argc, char *argv[]) {
             "is a float and gives the font size of the text and style can be 'i', 'b', 'bi', 'ib' for italic, bold and bold+italic");
 
     options_description programOptions("Valid Options");
-    programOptions.add(generic).add(imgOptions).add(qrOptions).add(textOptions);
+    programOptions
+        .add(generic)
+        .add(imgOptions)
+        .add(imgRelPlacement)
+        .add(imgAbsPlacement)
+        .add(qrOptions)
+        .add(textOptions);
     // clang-format on
 
     variables_map vm;
@@ -78,8 +93,29 @@ readCLIOptions(int argc, char *argv[]) {
         cliOption["imageFile"] = vm["stamp"].as<std::string>();
     }
 
+    bool imgPosAbsolute = false;
+
+    if (vm.count("img-x") || vm.count("img-y")) {
+        if (!(vm.count("img-x") && vm.count("img-y"))) {
+            std::cerr << "Both img-x and img-y are necessary for placement."
+                      << std::endl;
+            exit(2);
+        }
+
+        cliOption["img-x"] = vm["img-x"].as<float>();
+        cliOption["img-y"] = vm["img-y"].as<float>();
+        imgPosAbsolute = true;
+    }
+
     if (vm.count("img-side")) {
         int side;
+
+        if (imgPosAbsolute) {
+            std::cerr << "You cannot use options from both absolute and "
+                         "relative placement!"
+                      << std::endl;
+            exit(2);
+        }
 
         side = vm["img-side"].as<int>();
         if (side < 0 || side > 2) {
@@ -173,9 +209,27 @@ readCLIOptions(int argc, char *argv[]) {
 
     cliOption["qr-scale"] = qr_scale;
 
-    cliOption["img-top-margin"] = vm["img-top-margin"].as<float>();
+    if ((vm.count("img-top-margin") || vm.count("img-side-margin")) &&
+        imgPosAbsolute) {
+        std::cerr << "You cannot use options from both absolute and "
+                     "relative placement!"
+                  << std::endl;
+        exit(2);
+    }
 
-    cliOption["img-side-margin"] = vm["img-side-margin"].as<float>();
+    if (vm.count("img-top-margin")) {
+        cliOption["img-top-margin"] = vm["img-top-margin"].as<float>();
+    } else {
+        cliOption["img-top-margin"] = 0;
+    }
+
+    if (vm.count("img-side-margin")) {
+        cliOption["img-side-margin"] = vm["img-side-margin"].as<float>();
+    } else {
+        cliOption["img-side-margin"] = 0;
+    }
+
+    cliOption["img-link-to"] = vm["img-link-to"].as<std::string>();
 
     cliOption["qr-top-margin"] = vm["qr-top-margin"].as<float>();
 
