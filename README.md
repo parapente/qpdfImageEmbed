@@ -38,40 +38,50 @@ make install
 
 ```
 Generic:
-  -h [ --help ]                Produce this help message
-  -i [ --input-file ] arg      Input file
-  -o [ --output-file ] arg     Output file
-  --rotate arg (=0)            Assume page is rotated by 0/90/180/270 degrees
-  --debug                      Print extra debug messages
+  -h [ --help ]               Produce this help message
+  -i [ --input-file ] arg     Input file
+  -o [ --output-file ] arg    Output file
+  --rotate arg (=0)           Assume page is rotated by 0/90/180/270 degrees
+  --debug                     Print extra debug messages
 
 Image:
-  -s [ --stamp ] arg           Image to embed
-  --img-side arg (=0)          Side of the document: 0 center (default), 1 
-                               left, 2 right
-  --img-scale arg (=1)         Scale image by a factor eg. 0.5
-  --img-top-margin arg (=10)   Set a margin for the image placement from the 
-                               top of the page
-  --img-side-margin arg (=15)  Set a margin for the image placement from the 
-                               sides of the page
+  -s [ --stamp ] arg          Image to embed
+  --img-scale arg (=1)        Scale image by a factor eg. 0.5
+  --img-link-to arg           Image will be clickable linking to the url passed
+                              as argument
+
+Image relative placement:
+  --img-side arg              Side of the document: 0 center (default), 1 left,
+                              2 right
+  --img-top-margin arg        Set a margin for the image placement from the top
+                              of the page
+  --img-side-margin arg       Set a margin for the image placement from the 
+                              sides of the page
+
+Image absolute placement:
+  --img-x arg                 x position from the left of the page (positive 
+                              right)
+  --img-y arg                 y position from the bottom of the page (positive 
+                              up)
 
 QR:
-  --qr arg                     Add QR instead of image using the specified text
-  --link                       QR value is a URL. Add clickable link
-  --qr-side arg (=0)           Side of the document: 0 center (default), 1 
-                               left, 2 right
-  --qr-scale arg (=1)          Scale QR by a factor eg. 0.5
-  --qr-top-margin arg (=10)    Set a margin for the QR placement from the top 
-                               of the page
-  --qr-side-margin arg (=15)   Set a margin for the QR placement from the sides
-                               of the page
+  --qr arg                    Add QR instead of image using the specified text
+  --link                      QR value is a URL. Add clickable link
+  --qr-side arg (=0)          Side of the document: 0 center (default), 1 left,
+                              2 right
+  --qr-scale arg (=1)         Scale QR by a factor eg. 0.5
+  --qr-top-margin arg (=10)   Set a margin for the QR placement from the top of
+                              the page
+  --qr-side-margin arg (=15)  Set a margin for the QR placement from the sides 
+                              of the page
 
 Text (only in latin alphabet):
-  --add-text arg               Add extra text to the first page. It can take 
-                               multiple strings of the form 
-                               '[x,y:][size:][style:]text' where x,y are the 
-                               coordinates where the text will appear, size is 
-                               a float and gives the font size of the text and 
-                               style can be 'i', 'b', 'bi', 'ib' for italic, 
-                               bold and bold+italic
+  --add-text arg              Add extra text to the first page. It can take 
+                              multiple strings of the form 
+                              '[x,y:][size:][style:]text' where x,y are the 
+                              coordinates where the text will appear, size is a
+                              float and gives the font size of the text and 
+                              style can be 'i', 'b', 'bi', 'ib' for italic, 
+                              bold and bold+italic
 
 ```
